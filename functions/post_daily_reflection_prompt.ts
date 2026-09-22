@@ -7,9 +7,7 @@ import {
   REFLECTION_INPUT_BLOCK_ID,
   START_REFLECTION_ACTION_ID,
 } from "../blocks/daily_reflection_prompt.ts";
-import UserSettingsDatastore, {
-  DAILY_REFLECTION_RECIPIENT_ID,
-} from "../datastores/user_settings.ts";
+import SlackUserProfilesDatastore from "../datastores/slack_user_profiles.ts";
 
 export const PostDailyReflectionPromptFunction = DefineFunction({
   callback_id: "post_daily_reflection_prompt",
@@ -35,49 +33,78 @@ export const PostDailyReflectionPromptFunction = DefineFunction({
 export default SlackFunction(
   PostDailyReflectionPromptFunction,
   async ({ client }) => {
-    const settings = await client.apps.datastore.get<
-      typeof UserSettingsDatastore.definition
-    >({
-      datastore: UserSettingsDatastore.name,
-      id: DAILY_REFLECTION_RECIPIENT_ID,
-    });
+    let cursor: string | undefined;
+    let deliveryCount = 0;
 
-    if (!settings.ok) {
-      return {
-        error: `送信先の設定を取得できませんでした: ${settings.error}`,
-      };
-    }
+    do {
+      const recipients = await client.apps.datastore.query<
+        typeof SlackUserProfilesDatastore.definition
+      >({
+        datastore: SlackUserProfilesDatastore.name,
+        expression: "#survey_enabled = :enabled",
+        expression_attributes: {
+          "#survey_enabled": "survey_enabled",
+        },
+        expression_values: {
+          ":enabled": true,
+        },
+        cursor,
+      });
 
-    const userId = settings.item?.user_id;
+      if (!recipients.ok) {
+        return {
+          error: `配信対象を取得できませんでした: ${recipients.error}`,
+        };
+      }
 
-    if (!userId) {
+      for (const recipient of recipients.items) {
+        const userId = recipient.slack_member_id;
+        let dmChannelId = recipient.dm_channel_id;
+
+        if (!userId) {
+          continue;
+        }
+
+        if (!dmChannelId) {
+          const directMessage = await client.conversations.open({
+            users: userId,
+          });
+
+          if (!directMessage.ok || !directMessage.channel?.id) {
+            console.error(
+              `ユーザー ${userId} のDMを開けませんでした: ${
+                directMessage.error ?? "unknown_error"
+              }`,
+            );
+            continue;
+          }
+
+          dmChannelId = directMessage.channel.id;
+        }
+
+        const response = await client.chat.postMessage({
+          channel: dmChannelId,
+          text: "出来事を振り返る時間です。",
+          blocks: dailyReflectionMessageBlocks(),
+        });
+
+        if (!response.ok) {
+          console.error(
+            `ユーザー ${userId} に振り返りメッセージを投稿できませんでした: ${response.error}`,
+          );
+          continue;
+        }
+
+        deliveryCount += 1;
+      }
+
+      cursor = recipients.response_metadata?.next_cursor;
+    } while (cursor);
+
+    if (deliveryCount === 0) {
       return {
         error:
-          "送信先が未設定です。DatastoreにSlackユーザーIDを登録してください。",
-      };
-    }
-
-    const directMessage = await client.conversations.open({
-      users: userId,
-    });
-
-    if (!directMessage.ok || !directMessage.channel?.id) {
-      return {
-        error: `DMを開けませんでした: ${
-          directMessage.error ?? "unknown_error"
-        }`,
-      };
-    }
-
-    const response = await client.chat.postMessage({
-      channel: directMessage.channel.id,
-      text: "出来事を振り返る時間です。",
-      blocks: dailyReflectionMessageBlocks(),
-    });
-
-    if (!response.ok) {
-      return {
-        error: `振り返りメッセージを投稿できませんでした: ${response.error}`,
+          "配信対象が見つからないか、すべてのDM送信に失敗しました。survey_enabledがtrueのユーザーを確認してください。",
       };
     }
 
