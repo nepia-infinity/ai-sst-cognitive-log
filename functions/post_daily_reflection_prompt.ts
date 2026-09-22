@@ -7,20 +7,19 @@ import {
   REFLECTION_INPUT_BLOCK_ID,
   START_REFLECTION_ACTION_ID,
 } from "../blocks/daily_reflection_prompt.ts";
+import UserSettingsDatastore, {
+  DAILY_REFLECTION_RECIPIENT_ID,
+} from "../datastores/user_settings.ts";
 
 export const PostDailyReflectionPromptFunction = DefineFunction({
   callback_id: "post_daily_reflection_prompt",
   title: "毎日の振り返りを投稿",
-  description: "出来事を振り返るためのBlock Kitメッセージを投稿します",
+  description:
+    "Datastoreで設定したユーザーのDMに振り返りメッセージを投稿します",
   source_file: "functions/post_daily_reflection_prompt.ts",
   input_parameters: {
-    properties: {
-      channel: {
-        type: Schema.slack.types.channel_id,
-        description: "振り返りメッセージの投稿先チャンネル",
-      },
-    },
-    required: ["channel"],
+    properties: {},
+    required: [],
   },
   output_parameters: {
     properties: {
@@ -35,9 +34,43 @@ export const PostDailyReflectionPromptFunction = DefineFunction({
 
 export default SlackFunction(
   PostDailyReflectionPromptFunction,
-  async ({ inputs, client }) => {
+  async ({ client }) => {
+    const settings = await client.apps.datastore.get<
+      typeof UserSettingsDatastore.definition
+    >({
+      datastore: UserSettingsDatastore.name,
+      id: DAILY_REFLECTION_RECIPIENT_ID,
+    });
+
+    if (!settings.ok) {
+      return {
+        error: `送信先の設定を取得できませんでした: ${settings.error}`,
+      };
+    }
+
+    const userId = settings.item?.user_id;
+
+    if (!userId) {
+      return {
+        error:
+          "送信先が未設定です。DatastoreにSlackユーザーIDを登録してください。",
+      };
+    }
+
+    const directMessage = await client.conversations.open({
+      users: userId,
+    });
+
+    if (!directMessage.ok || !directMessage.channel?.id) {
+      return {
+        error: `DMを開けませんでした: ${
+          directMessage.error ?? "unknown_error"
+        }`,
+      };
+    }
+
     const response = await client.chat.postMessage({
-      channel: inputs.channel,
+      channel: directMessage.channel.id,
       text: "出来事を振り返る時間です。",
       blocks: dailyReflectionMessageBlocks(),
     });

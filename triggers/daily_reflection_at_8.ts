@@ -20,26 +20,14 @@ function nextEightAmJst(now = new Date()): string {
   return new Date(targetUtc).toISOString();
 }
 
-const channelId = Deno.env.get("COGNITIVE_LOG_CHANNEL_ID");
-
-if (!channelId) {
-  throw new Error(
-    "COGNITIVE_LOG_CHANNEL_IDを設定してからトリガーを作成してください。",
-  );
-}
-
 const DailyReflectionAtEight: ScheduledTrigger<
   typeof DailyReflectionWorkflow.definition
 > = {
   type: TriggerTypes.Scheduled,
   name: "毎朝8時の出来事の振り返り",
-  description: "毎朝8時に振り返りメッセージを投稿します",
+  description: "毎朝8時にDatastoreで設定したユーザーのDMへ投稿します",
   workflow: `#/workflows/${DailyReflectionWorkflow.definition.callback_id}`,
-  inputs: {
-    channel: {
-      value: channelId,
-    },
-  },
+  inputs: {},
   schedule: {
     start_time: nextEightAmJst(),
     timezone: "Asia/Tokyo",
