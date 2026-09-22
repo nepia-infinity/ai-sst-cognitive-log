@@ -3,6 +3,7 @@
   "fmt": {
     "include": [
       "README.md",
+      "blocks",
       "datastores",
       "external_auth",
       "functions",
@@ -10,11 +11,12 @@
       "triggers",
       "types",
       "views",
-      "workflows"
-    ]
+      "workflows",
+    ],
   },
   "lint": {
     "include": [
+      "blocks",
       "datastores",
       "external_auth",
       "functions",
@@ -22,15 +24,15 @@
       "triggers",
       "types",
       "views",
-      "workflows"
-    ]
+      "workflows",
+    ],
   },
   "lock": false,
   "tasks": {
-    "test": "deno fmt --check && deno lint && deno test --permit-no-files --allow-read"
+    "test": "deno fmt --check && deno lint && deno test --permit-no-files --allow-read",
   },
   "imports": {
     "deno-slack-sdk/": "https://deno.land/x/deno_slack_sdk@2.15.1/",
-    "deno-slack-api/": "https://deno.land/x/deno_slack_api@2.8.0/"
-  }
+    "deno-slack-api/": "https://deno.land/x/deno_slack_api@2.8.0/",
+  },
 }
