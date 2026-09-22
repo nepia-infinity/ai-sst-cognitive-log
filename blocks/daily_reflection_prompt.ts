@@ -4,7 +4,7 @@ export const REFLECTION_INPUT_BLOCK_ID = "daily_reflection";
 export const REFLECTION_INPUT_ACTION_ID = "reflection_text";
 
 const PURPOSE_TEXT =
-  "認知の歪みや自動思考に気付くために日々の出来事を記録します。";
+  "認知の歪み、自動思考に気付くために日々の出来事を記録します。";
 // Block Kitの型はSlack API側で検証されるため、再利用しやすい配列として返します。
 // deno-lint-ignore no-explicit-any
 export function dailyReflectionMessageBlocks(): any[] {
