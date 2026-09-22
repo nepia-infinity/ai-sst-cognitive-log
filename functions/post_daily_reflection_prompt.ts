@@ -7,7 +7,6 @@ import {
   REFLECTION_INPUT_BLOCK_ID,
   START_REFLECTION_ACTION_ID,
 } from "../blocks/daily_reflection_prompt.ts";
-import SlackUserProfilesDatastore from "../datastores/slack_user_profiles.ts";
 
 export const PostDailyReflectionPromptFunction = DefineFunction({
   callback_id: "post_daily_reflection_prompt",
@@ -37,10 +36,8 @@ export default SlackFunction(
     let deliveryCount = 0;
 
     do {
-      const recipients = await client.apps.datastore.query<
-        typeof SlackUserProfilesDatastore.definition
-      >({
-        datastore: SlackUserProfilesDatastore.name,
+      const recipients = await client.apps.datastore.query({
+        datastore: "slack_user_profiles",
         expression: "#survey_enabled = :enabled",
         expression_attributes: {
           "#survey_enabled": "survey_enabled",
