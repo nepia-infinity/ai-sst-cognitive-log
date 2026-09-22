@@ -1,16 +1,13 @@
 import { Manifest } from "deno-slack-sdk/mod.ts";
+import { PostDailyReflectionPromptFunction } from "./functions/post_daily_reflection_prompt.ts";
+import { DailyReflectionWorkflow } from "./workflows/daily_reflection_workflow.ts";
 
-/**
- * The app manifest contains the app's configuration. This
- * file defines attributes like app name and description.
- * https://api.slack.com/automation/manifest
- */
 export default Manifest({
   name: "ai-sst-cognitive-log",
-  description: "A blank template for building Slack apps with Deno",
+  description: "日々の出来事や考えを整理するためのAI支援型Slackアプリ",
   icon: "assets/default_new_app_icon.png",
-  functions: [],
-  workflows: [],
+  functions: [PostDailyReflectionPromptFunction],
+  workflows: [DailyReflectionWorkflow],
   outgoingDomains: [],
-  botScopes: ["commands", "chat:write", "chat:write.public"],
+  botScopes: ["commands", "chat:write", "chat:write.public", "triggers:write"],
 });
