@@ -3,9 +3,8 @@ export const DAILY_REFLECTION_MODAL_CALLBACK_ID = "daily_reflection_modal";
 export const REFLECTION_INPUT_BLOCK_ID = "daily_reflection";
 export const REFLECTION_INPUT_ACTION_ID = "reflection_text";
 
-const PURPOSE_TEXT = "認知の歪みに気付くために日々の出来事を記述します。\n" +
-  "考えを整理して、悩み・怒り・不安を小さくするためのセルフモニタリングです。";
-
+const PURPOSE_TEXT =
+  "認知の歪みや自動思考に気付くために日々の出来事を記録します。";
 // Block Kitの型はSlack API側で検証されるため、再利用しやすい配列として返します。
 // deno-lint-ignore no-explicit-any
 export function dailyReflectionMessageBlocks(): any[] {
@@ -84,7 +83,7 @@ export function dailyReflectionModal(privateMetadata: string): any {
           placeholder: {
             type: "plain_text",
             text:
-              "昨日から今朝までに起きた出来事や、頭に浮かんだことを自由に書いてください。",
+              "今日の出来事を振り返って、思ったことや感じたことを自由に記述してください。",
           },
         },
         label: {
