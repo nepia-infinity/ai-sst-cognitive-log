@@ -20,7 +20,7 @@ function nextEightAmJst(now = new Date()): string {
   return new Date(targetUtc).toISOString();
 }
 
-const DailyReflectionAtEight: ScheduledTrigger<
+const DailyReflection: ScheduledTrigger<
   typeof DailyReflectionWorkflow.definition
 > = {
   type: TriggerTypes.Scheduled,
@@ -37,4 +37,4 @@ const DailyReflectionAtEight: ScheduledTrigger<
   },
 };
 
-export default DailyReflectionAtEight;
+export default DailyReflection;

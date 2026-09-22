@@ -21,12 +21,20 @@ slack-cli run
 slack-cli datastore put '{"datastore":"cognitive_log_user_settings","item":{"id":"daily_reflection_recipient","user_id":"U0123456789"}}'
 ```
 
-続けてスケジュールトリガーを作成します。
+動作確認用の手動トリガーを作成します。
 
 ```powershell
-slack-cli trigger create --trigger-def triggers/daily_reflection_at_8.ts
+slack-cli trigger create --trigger-def triggers/manual_daily_reflection.ts
 ```
 
-トリガーは`Asia/Tokyo`の午前8時に毎日実行されます。`COGNITIVE_LOG_CHANNEL_ID`の環境変数は不要です。
+コマンドの実行結果に表示されるショートカットURLをSlackで開くと、振り返りメッセージがすぐにDMへ投稿されます。
+
+動作確認ができたら、毎朝8時のスケジュールトリガーを作成します。
+
+```powershell
+slack-cli trigger create --trigger-def triggers/daily_reflection.ts
+```
+
+スケジュールトリガーは`Asia/Tokyo`の午前8時に毎日実行されます。`COGNITIVE_LOG_CHANNEL_ID`の環境変数は不要です。
 
 ローカル環境では`slack-cli run`を起動したままにしてください。本番環境では先に`slack-cli deploy`を実行し、デプロイ先と同じ環境のDatastoreにユーザーIDを登録してからトリガーを作成します。
