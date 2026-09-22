@@ -1,4 +1,6 @@
 import { Manifest } from "deno-slack-sdk/mod.ts";
+import SlackUserProfilesDatastore from "./datastores/slack_user_profiles.ts";
+import UserSettingsDatastore from "./datastores/user_settings.ts";
 import { PostDailyReflectionPromptFunction } from "./functions/post_daily_reflection_prompt.ts";
 import { DailyReflectionWorkflow } from "./workflows/daily_reflection_workflow.ts";
 
@@ -8,6 +10,7 @@ export default Manifest({
   icon: "assets/default_new_app_icon.png",
   functions: [PostDailyReflectionPromptFunction],
   workflows: [DailyReflectionWorkflow],
+  datastores: [UserSettingsDatastore, SlackUserProfilesDatastore],
   outgoingDomains: [],
   botScopes: [
     "commands",
