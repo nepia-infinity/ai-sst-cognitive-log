@@ -5,6 +5,10 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_TABLE_RECORDS = 100;
 const MAX_REFLECTION_LENGTH = 100;
 
+// Slack APIが新しいグラフ・表ブロックを検証するため、SDK側の古いBlock型は使わない。
+// deno-lint-ignore no-explicit-any
+type WeeklyEmotionBlocks = any[];
+
 export type ReflectionRecord = {
   id: string;
   user_id: string;
@@ -37,13 +41,11 @@ function shorten(text: string): string {
     : characters.join("");
 }
 
-// Slack APIが新しいグラフ・表ブロックを検証するため、SDK側の古いBlock型は使わない。
-// deno-lint-ignore no-explicit-any
 export function weeklyEmotionBlocks(
   records: ReflectionRecord[],
   window: { start: number; end: number },
   userId: string,
-): any[] {
+): WeeklyEmotionBlocks {
   const labels = new Map<string, string>(
     EMOTION_OPTIONS.map(({ value, label }) => [value, label] as const),
   );
