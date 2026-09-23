@@ -32,6 +32,10 @@ export const PostDailyReflectionPromptFunction = DefineFunction({
         type: Schema.types.string,
         description: "ユーザーが選択した感情の固定コード",
       },
+      submissionId: { type: Schema.types.string },
+      userId: { type: Schema.slack.types.user_id },
+      channelId: { type: Schema.slack.types.channel_id },
+      messageTs: { type: Schema.types.string },
     },
     required: [],
   },
@@ -165,27 +169,16 @@ export default SlackFunction(
       }
       const { channelId, messageTs } = JSON.parse(view.private_metadata!);
 
-      await client.chat.update({
-        channel: channelId,
-        ts: messageTs,
-        text: "本日の出来事を記録しました。",
-        blocks: [
-          ...dailyReflectionMessageBlocks().slice(0, 2),
-          {
-            type: "context",
-            elements: [
-              {
-                type: "mrkdwn",
-                text: ":white_check_mark: 本日の出来事を記録しました。",
-              },
-            ],
-          },
-        ],
-      });
-
       await client.functions.completeSuccess({
         function_execution_id: body.function_data.execution_id,
-        outputs: { reflection, emotion },
+        outputs: {
+          submissionId: body.function_data.execution_id,
+          userId: body.user.id,
+          reflection,
+          emotion,
+          channelId,
+          messageTs,
+        },
       });
 
       return { response_action: "clear" };
