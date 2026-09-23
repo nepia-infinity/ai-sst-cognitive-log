@@ -17,8 +17,8 @@ Slack CLI、Deno、アプリをインストールできるSlackワークスペ�
 ```powershell
 git clone https://github.com/nepia-infinity/ai-sst-cognitive-log.git
 cd ai-sst-cognitive-log
-slack-cli.exe login
-slack-cli.exe run
+slack-cli login
+slack-cli run
 ```
 
 `slack-cli.exe run` を起動している間、Slackには名前の末尾に `(local)` が付いた開発用アプリが表示されます。停止するときは `Ctrl+C` を押します。GitHub上でコードを更新しただけでは手元のアプリに反映されないため、既存のチェックアウトでは `git pull origin master` などでローカルのコードを更新してから起動してください。
@@ -28,8 +28,8 @@ slack-cli.exe run
 `slack_user_profiles` にSlackのユーザーIDを登録します。`survey_enabled` が `true` のレコードだけを配信対象にします。次の例は新規登録と確認です。
 
 ```powershell
-slack-cli.exe datastore put --app local --datastore slack_user_profiles '{"item":{"slack_member_id":"U0123ABCDEF","survey_enabled":true}}'
-slack-cli.exe datastore get --app local --datastore slack_user_profiles '{"id":"U0123ABCDEF"}' --output json
+slack-cli datastore put --app local --datastore slack_user_profiles '{"item":{"slack_member_id":"U0123ABCDEF","survey_enabled":true}}'
+slack-cli datastore get --app local --datastore slack_user_profiles '{"id":"U0123ABCDEF"}' --output json
 ```
 
 `U0123ABCDEF` は対象者のSlackユーザーIDに置き換えてください。このDatastoreの主キー属性は `slack_member_id` ですが、`get` コマンドの検索引数には `id` を指定します。プロフィールの `screen_name` などの属性だけでは配信対象にはなりません。
@@ -39,8 +39,8 @@ slack-cli.exe datastore get --app local --datastore slack_user_profiles '{"id":"
 定時配信用と動作確認用のトリガーを用意しています。ローカルアプリで利用する場合は、作成時にローカル環境を選びます。
 
 ```powershell
-slack-cli.exe trigger create --trigger-def triggers/daily_reflection.ts
-slack-cli.exe trigger create --trigger-def triggers/manual_daily_reflection.ts
+slack-cli trigger create --trigger-def triggers/daily_reflection.ts
+slack-cli trigger create --trigger-def triggers/manual_daily_reflection.ts
 ```
 
 `daily_reflection.ts` は毎朝8時（日本時間）の定時トリガーです。`manual_daily_reflection.ts` は作成時に表示されるリンクを開くと直ちに実行できます。どちらも、実行時点で `survey_enabled: true` の**全ユーザー**へ案内を送ります。トリガーを起動した本人だけに送る仕組みではありません。
@@ -50,20 +50,20 @@ slack-cli.exe trigger create --trigger-def triggers/manual_daily_reflection.ts
 `(local)` アプリで新しく回答した後、別のPowerShellで以下を実行します。Datastoreのローカル環境とデプロイ環境は別々です。
 
 ```powershell
-slack-cli.exe datastore count --app local --datastore daily_reflections
-slack-cli.exe datastore query --app local --datastore daily_reflections '{"limit":10}' --output json
+slack-cli datastore count --app local --datastore daily_reflections
+slack-cli datastore query --app local --datastore daily_reflections '{"limit":10}' --output json
 ```
 
 特定のユーザーの回答を調べる場合は `user_id` で絞り込みます。
 
 ```powershell
-slack-cli.exe datastore query --app local --datastore daily_reflections '{"expression":"#u = :u","expression_attributes":{"#u":"user_id"},"expression_values":{":u":"U0123ABCDEF"}}' --output json
+slack-cli datastore query --app local --datastore daily_reflections '{"expression":"#u = :u","expression_attributes":{"#u":"user_id"},"expression_values":{":u":"U0123ABCDEF"}}' --output json
 ```
 
 レコードの `id` はユーザーIDではなく回答時の実行IDです。`query` で表示された `id` が分かれば、次のように1件だけ取得できます。
 
 ```powershell
-slack-cli.exe datastore get --app local --datastore daily_reflections '{"id":"検索結果のid"}' --output json
+slack-cli datastore get --app local --datastore daily_reflections '{"id":"検索結果のid"}' --output json
 ```
 
 ローカルアプリに対するDatastore操作でCLIがサポート警告を表示した場合は、選択したアプリが `(local)` であることを確かめ、必要に応じて `--force` を追加してください。記録内容は個人的な情報を含むため、コマンドの結果を共有するときは `reflection` を伏せてください。
@@ -92,7 +92,7 @@ slack-cli.exe datastore get --app local --datastore daily_reflections '{"id":"�
 
 ```powershell
 deno task test
-slack-cli.exe activity --tail
+slack-cli activity --tail
 ```
 
-`deno task test` はフォーマット・lint・テストのチェックを実行します。現時点で自動テストファイルはありません。デプロイ版を利用する場合は `slack-cli.exe deploy` でデプロイし、デプロイ環境にもトリガーと配信対象を設定してください。ローカルのレコードはデプロイ版へ自動では移りません。
+`deno task test` はフォーマット・lint・テストのチェックを実行します。現時点で自動テストファイルはありません。デプロイ版を利用する場合は `slack-cli deploy` でデプロイし、デプロイ環境にもトリガーと配信対象を設定してください。ローカルのレコードはデプロイ版へ自動では移りません。
