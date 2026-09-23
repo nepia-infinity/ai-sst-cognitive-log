@@ -93,26 +93,6 @@ export function dailyReflectionModal(privateMetadata: string): any {
       },
       {
         type: "input",
-        block_id: REFLECTION_INPUT_BLOCK_ID,
-        element: {
-          type: "plain_text_input",
-          action_id: REFLECTION_INPUT_ACTION_ID,
-          multiline: true,
-          placeholder: {
-            type: "plain_text",
-            text:
-              "今日の出来事を振り返って、思ったことや感じたことを自由に記述してください。",
-          },
-        },
-        label: {
-          type: "plain_text",
-          text: "出来事の振り返り",
-          emoji: true,
-        },
-        optional: false,
-      },
-      {
-        type: "input",
         block_id: EMOTION_INPUT_BLOCK_ID,
         element: {
           type: "static_select",
@@ -129,6 +109,26 @@ export function dailyReflectionModal(privateMetadata: string): any {
         label: {
           type: "plain_text",
           text: "今の気持ちに一番近いものは？",
+        },
+        optional: false,
+      },
+      {
+        type: "input",
+        block_id: REFLECTION_INPUT_BLOCK_ID,
+        element: {
+          type: "plain_text_input",
+          action_id: REFLECTION_INPUT_ACTION_ID,
+          multiline: true,
+          placeholder: {
+            type: "plain_text",
+            text:
+              "今日の出来事を振り返って、思ったことや感じたことを自由に記述してください。",
+          },
+        },
+        label: {
+          type: "plain_text",
+          text: "出来事の振り返り",
+          emoji: true,
         },
         optional: false,
       },
