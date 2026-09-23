@@ -1,194 +1,98 @@
-# Blank Template
+# ai-sst-cognitive-log
 
-This is a blank template used to build out automations using the Slack CLI.
+日々の出来事と、そのときの感情をSlackのDMから記録するアプリです。振り返りを蓄積し、後から認知の歪みや自動思考に気付くための土台を作っています。
 
-**Guide Outline**:
+## 現在できること
 
-- [Setup](#setup)
-  - [Install the Slack CLI](#install-the-slack-cli)
-  - [Clone the Template](#clone-the-template)
-- [Running Your Project Locally](#running-your-project-locally)
-- [Creating Triggers](#creating-triggers)
-- [Datastores](#datastores)
-- [Testing](#testing)
-- [Deploying Your App](#deploying-your-app)
-- [Viewing Activity Logs](#viewing-activity-logs)
-- [Project Structure](#project-structure)
-- [Resources](#resources)
+- `slack_user_profiles` で `survey_enabled: true` にしたユーザーへ、毎朝8時（日本時間）に振り返りの案内をDMで送ります。手動のリンクトリガーからも同じ案内を送れます。
+- DMの「記録する」ボタンで入力画面を開き、感情を12種類から1つ選んで、出来事や感じたことを自由記述できます。感情の選択と自由記述は必須です。
+- 送信した内容を `daily_reflections` に1回答1レコードで保存し、保存に成功した後でDMに完了を表示します。キャンセルした入力は保存しません。
 
----
+**まだ実装していない機能:** 感情の集計・グラフ表示、AIによる分析、怒りの強度の判定。画面では怒りの強度を入力しません。
 
-## Setup
+## ローカルで動かす
 
-Before getting started, first make sure you have a development workspace where
-you have permission to install apps. **Please note that the features in this
-project require that the workspace be part of
-[a Slack paid plan](https://slack.com/pricing).**
+Slack CLI、Deno、アプリをインストールできるSlackワークスペースが必要です。以下はWindows PowerShellで `slack-cli.exe` を使う例です。CLIを `slack` という名前で導入した場合は読み替えてください。
 
-### Install the Slack CLI
-
-To use this template, you need to install and configure the Slack CLI.
-Step-by-step instructions can be found in our
-[Quickstart Guide](https://api.slack.com/automation/quickstart).
-
-### Clone the Template
-
-Start by cloning this repository:
-
-```zsh
-# Clone this project onto your machine
-$ slack create my-app -t slack-samples/deno-blank-template
-
-# Change into the project directory
-$ cd my-app
+```powershell
+git clone https://github.com/nepia-infinity/ai-sst-cognitive-log.git
+cd ai-sst-cognitive-log
+slack-cli.exe login
+slack-cli.exe run
 ```
 
-## Running Your Project Locally
+`slack-cli.exe run` を起動している間、Slackには名前の末尾に `(local)` が付いた開発用アプリが表示されます。停止するときは `Ctrl+C` を押します。GitHub上でコードを更新しただけでは手元のアプリに反映されないため、既存のチェックアウトでは `git pull origin master` などでローカルのコードを更新してから起動してください。
 
-While building your app, you can see your changes appear in your workspace in
-real-time with `slack run`. You'll know an app is the development version if the
-name has the string `(local)` appended.
+### 配信対象を設定する
 
-```zsh
-# Run app locally
-$ slack run
+`slack_user_profiles` にSlackのユーザーIDを登録します。`survey_enabled` が `true` のレコードだけを配信対象にします。次の例は新規登録と確認です。
 
-Connected, awaiting events
+```powershell
+slack-cli.exe datastore put --app local --datastore slack_user_profiles '{"item":{"slack_member_id":"U0123ABCDEF","survey_enabled":true}}'
+slack-cli.exe datastore get --app local --datastore slack_user_profiles '{"id":"U0123ABCDEF"}' --output json
 ```
 
-To stop running locally, press `<CTRL> + C` to end the process.
+`U0123ABCDEF` は対象者のSlackユーザーIDに置き換えてください。このDatastoreの主キー属性は `slack_member_id` ですが、`get` コマンドの検索引数には `id` を指定します。プロフィールの `screen_name` などの属性だけでは配信対象にはなりません。
 
-## Creating Triggers
+### トリガーを作成する
 
-[Triggers](https://api.slack.com/automation/triggers) are what cause workflows
-to run. These triggers can be invoked by a user, or automatically as a response
-to an event within Slack.
+定時配信用と動作確認用のトリガーを用意しています。ローカルアプリで利用する場合は、作成時にローカル環境を選びます。
 
-When you `run` or `deploy` your project for the first time, the CLI will prompt
-you to create a trigger if one is found in the `triggers/` directory. For any
-subsequent triggers added to the application, each must be
-[manually added using the `trigger create` command](#manual-trigger-creation).
-
-When creating triggers, you must select the workspace and environment that you'd
-like to create the trigger in. Each workspace can have a local development
-version (denoted by `(local)`), as well as a deployed version. _Triggers created
-in a local environment will only be available to use when running the
-application locally._
-
-### Link Triggers
-
-A [link trigger](https://api.slack.com/automation/triggers/link) is a type of
-trigger that generates a **Shortcut URL** which, when posted in a channel or
-added as a bookmark, becomes a link. When clicked, the link trigger will run the
-associated workflow.
-
-Link triggers are _unique to each installed version of your app_. This means
-that Shortcut URLs will be different across each workspace, as well as between
-[locally run](#running-your-project-locally) and
-[deployed apps](#deploying-your-app).
-
-With link triggers, after selecting a workspace and environment, the output
-provided will include a Shortcut URL. Copy and paste this URL into a channel as
-a message, or add it as a bookmark in a channel of the workspace you selected.
-Interacting with this link will run the associated workflow.
-
-**Note: triggers won't run the workflow unless the app is either running locally
-or deployed!**
-
-### Manual Trigger Creation
-
-To manually create a trigger, use the following command:
-
-```zsh
-$ slack trigger create --trigger-def triggers/<YOUR_TRIGGER_FILE>.ts
+```powershell
+slack-cli.exe trigger create --trigger-def triggers/daily_reflection.ts
+slack-cli.exe trigger create --trigger-def triggers/manual_daily_reflection.ts
 ```
 
-## Datastores
+`daily_reflection.ts` は毎朝8時（日本時間）の定時トリガーです。`manual_daily_reflection.ts` は作成時に表示されるリンクを開くと直ちに実行できます。どちらも、実行時点で `survey_enabled: true` の**全ユーザー**へ案内を送ります。トリガーを起動した本人だけに送る仕組みではありません。
 
-For storing data related to your app, datastores offer secure storage on Slack
-infrastructure. The use of a datastore requires the
-`datastore:write`/`datastore:read` scopes to be present in your manifest.
+## 保存した回答を確認する
 
-## Testing
+`(local)` アプリで新しく回答した後、別のPowerShellで以下を実行します。Datastoreのローカル環境とデプロイ環境は別々です。
 
-Test filenames should be suffixed with `_test`.
-
-Run all tests with `deno test`:
-
-```zsh
-$ deno test
+```powershell
+slack-cli.exe datastore count --app local --datastore daily_reflections
+slack-cli.exe datastore query --app local --datastore daily_reflections '{"limit":10}' --output json
 ```
 
-## Deploying Your App
+特定のユーザーの回答を調べる場合は `user_id` で絞り込みます。
 
-Once development is complete, deploy the app to Slack infrastructure using
-`slack deploy`:
-
-```zsh
-$ slack deploy
+```powershell
+slack-cli.exe datastore query --app local --datastore daily_reflections '{"expression":"#u = :u","expression_attributes":{"#u":"user_id"},"expression_values":{":u":"U0123ABCDEF"}}' --output json
 ```
 
-When deploying for the first time, you'll be prompted to
-[create a new link trigger](#creating-triggers) for the deployed version of your
-app. When that trigger is invoked, the workflow should run just as it did when
-developing locally (but without requiring your server to be running).
+レコードの `id` はユーザーIDではなく回答時の実行IDです。`query` で表示された `id` が分かれば、次のように1件だけ取得できます。
 
-## Viewing Activity Logs
-
-Activity logs of your application can be viewed live and as they occur with the
-following command:
-
-```zsh
-$ slack activity --tail
+```powershell
+slack-cli.exe datastore get --app local --datastore daily_reflections '{"id":"検索結果のid"}' --output json
 ```
 
-## Project Structure
+ローカルアプリに対するDatastore操作でCLIがサポート警告を表示した場合は、選択したアプリが `(local)` であることを確かめ、必要に応じて `--force` を追加してください。記録内容は個人的な情報を含むため、コマンドの結果を共有するときは `reflection` を伏せてください。
 
-### `.slack/`
+### 保存する項目
 
-Contains `apps.dev.json` and `apps.json`, which include installation details for
-development and deployed apps.
+| Datastore | 主キー | 用途 |
+| --- | --- | --- |
+| `slack_user_profiles` | `slack_member_id` | 配信対象の設定。`survey_enabled` が `true` の人へ送る |
+| `daily_reflections` | `id` | 送信された振り返りを1回答ずつ保存 |
+| `cognitive_log_user_settings` | `id` | 定義はあるが、現在の配信・保存処理では参照しない |
 
-Contains `hooks.json` used by the CLI to interact with the project's SDK
-dependencies. It contains script hooks that are executed by the CLI and
-implemented by the SDK.
+`daily_reflections` のレコードには以下を保存します。
 
-### `datastores/`
+| 項目 | 内容 |
+| --- | --- |
+| `id` | 回答を受け付けた関数の実行ID |
+| `user_id` | 回答者のSlackユーザーID |
+| `reflection` | 入力した自由記述 |
+| `emotion` | 選択した感情の固定コード |
+| `recorded_at` | 保存時刻（Unixミリ秒） |
 
-[Datastores](https://api.slack.com/automation/datastores) securely store data
-for your application on Slack infrastructure. Required scopes to use datastores
-include `datastore:write` and `datastore:read`.
+感情の選択肢は、怒り・悲しみ・不安・恐怖・焦り・嫉妬・悔しさ・自己嫌悪・戸惑い・喜び・安心・達成感です。保存される値は日本語の表示名ではなく、`anger` などの英語コードです。対応表は [`blocks/daily_reflection_prompt.ts`](blocks/daily_reflection_prompt.ts) の `EMOTION_OPTIONS` を参照してください。
 
-### `functions/`
+## 開発用コマンド
 
-[Functions](https://api.slack.com/automation/functions) are reusable building
-blocks of automation that accept inputs, perform calculations, and provide
-outputs. Functions can be used independently or as steps in workflows.
+```powershell
+deno task test
+slack-cli.exe activity --tail
+```
 
-### `triggers/`
-
-[Triggers](https://api.slack.com/automation/triggers) determine when workflows
-are run. A trigger file describes the scenario in which a workflow should be
-run, such as a user pressing a button or when a specific event occurs.
-
-### `workflows/`
-
-A [workflow](https://api.slack.com/automation/workflows) is a set of steps
-(functions) that are executed in order.
-
-Workflows can be configured to run without user input or they can collect input
-by beginning with a [form](https://api.slack.com/automation/forms) before
-continuing to the next step.
-
-### `manifest.ts`
-
-The [app manifest](https://api.slack.com/automation/manifest) contains the app's
-configuration. This file defines attributes like app name and description.
-
-## Resources
-
-To learn more about developing automations on Slack, visit the following:
-
-- [Automation Overview](https://api.slack.com/automation)
-- [CLI Quick Reference](https://api.slack.com/automation/cli/quick-reference)
-- [Samples and Templates](https://api.slack.com/automation/samples)
+`deno task test` はフォーマット・lint・テストのチェックを実行します。現時点で自動テストファイルはありません。デプロイ版を利用する場合は `slack-cli.exe deploy` でデプロイし、デプロイ環境にもトリガーと配信対象を設定してください。ローカルのレコードはデプロイ版へ自動では移りません。
