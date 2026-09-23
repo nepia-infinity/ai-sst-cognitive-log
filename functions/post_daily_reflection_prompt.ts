@@ -168,7 +168,7 @@ export default SlackFunction(
       await client.chat.update({
         channel: channelId,
         ts: messageTs,
-        text: "本日の出来事を記録しました。",
+        text: "入力を受け付けました。現在、回答は保存されません。",
         blocks: [
           ...dailyReflectionMessageBlocks().slice(0, 2),
           {
@@ -176,7 +176,7 @@ export default SlackFunction(
             elements: [
               {
                 type: "mrkdwn",
-                text: ":white_check_mark: 本日の出来事を記録しました。",
+                text: ":white_check_mark: 入力を受け付けました。現在、回答は保存されません。",
               },
             ],
           },
