@@ -2,6 +2,24 @@ export const START_REFLECTION_ACTION_ID = "start_daily_reflection";
 export const DAILY_REFLECTION_MODAL_CALLBACK_ID = "daily_reflection_modal";
 export const REFLECTION_INPUT_BLOCK_ID = "daily_reflection";
 export const REFLECTION_INPUT_ACTION_ID = "reflection_text";
+export const EMOTION_INPUT_BLOCK_ID = "primary_emotion";
+export const EMOTION_INPUT_ACTION_ID = "primary_emotion_select";
+
+// 値は集計時に使うため固定し、表示名だけを変更できるようにします。
+export const EMOTION_OPTIONS = [
+  { value: "anger", label: "怒り" },
+  { value: "sadness", label: "悲しみ" },
+  { value: "anxiety", label: "不安" },
+  { value: "fear", label: "恐怖" },
+  { value: "impatience", label: "焦り" },
+  { value: "jealousy", label: "嫉妬" },
+  { value: "frustration", label: "悔しさ" },
+  { value: "self_loathing", label: "自己嫌悪" },
+  { value: "confusion", label: "戸惑い" },
+  { value: "joy", label: "喜び" },
+  { value: "relief", label: "安心" },
+  { value: "achievement", label: "達成感" },
+] as const;
 
 const PURPOSE_TEXT =
   "認知の歪み、自動思考に気付くために日々の出来事を記録します。";
@@ -90,6 +108,27 @@ export function dailyReflectionModal(privateMetadata: string): any {
           type: "plain_text",
           text: "出来事の振り返り",
           emoji: true,
+        },
+        optional: false,
+      },
+      {
+        type: "input",
+        block_id: EMOTION_INPUT_BLOCK_ID,
+        element: {
+          type: "static_select",
+          action_id: EMOTION_INPUT_ACTION_ID,
+          placeholder: {
+            type: "plain_text",
+            text: "感情を1つ選択してください",
+          },
+          options: EMOTION_OPTIONS.map(({ value, label }) => ({
+            text: { type: "plain_text", text: label },
+            value,
+          })),
+        },
+        label: {
+          type: "plain_text",
+          text: "今の気持ちに一番近いものは？",
         },
         optional: false,
       },
