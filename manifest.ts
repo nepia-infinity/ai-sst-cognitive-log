@@ -4,6 +4,7 @@ import DailyReflectionsDatastore from "./datastores/daily_reflections.ts";
 import UserSettingsDatastore from "./datastores/user_settings.ts";
 import { PostDailyReflectionPromptFunction } from "./functions/post_daily_reflection_prompt.ts";
 import { SaveDailyReflectionFunction } from "./functions/save_daily_reflection.ts";
+import { AnalyzeDailyReflectionFunction } from "./functions/analyze_daily_reflection.ts";
 import { PostWeeklyEmotionReportFunction } from "./functions/post_weekly_emotion_report.ts";
 import { DailyReflectionWorkflow } from "./workflows/daily_reflection_workflow.ts";
 import { WeeklyEmotionReportWorkflow } from "./workflows/weekly_emotion_report_workflow.ts";
@@ -15,6 +16,7 @@ export default Manifest({
   functions: [
     PostDailyReflectionPromptFunction,
     SaveDailyReflectionFunction,
+    AnalyzeDailyReflectionFunction,
     PostWeeklyEmotionReportFunction,
   ],
   workflows: [DailyReflectionWorkflow, WeeklyEmotionReportWorkflow],
@@ -23,7 +25,7 @@ export default Manifest({
     SlackUserProfilesDatastore,
     DailyReflectionsDatastore,
   ],
-  outgoingDomains: [],
+  outgoingDomains: ["api.openai.com"],
   botScopes: [
     "commands",
     "chat:write",
