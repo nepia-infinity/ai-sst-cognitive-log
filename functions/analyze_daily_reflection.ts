@@ -27,7 +27,7 @@ type OpenAIResponse = {
 
 export default SlackFunction(
   AnalyzeDailyReflectionFunction,
-  async ({ inputs, client }) => {
+  async ({ inputs, client, env }) => {
     const { reflection, emotion, channelId } = inputs;
     if (!reflection && !emotion && !channelId) {
       return { outputs: {} };
@@ -36,7 +36,7 @@ export default SlackFunction(
       return { error: "AIとの振り返りに必要な入力が不足しています。" };
     }
 
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    const apiKey = env["OPENAI_API_KEY"];
     if (!apiKey) {
       console.error("OPENAI_API_KEY が設定されていません。");
       await client.chat.postMessage({
