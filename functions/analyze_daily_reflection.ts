@@ -36,7 +36,9 @@ export default SlackFunction(
       return { error: "AIとの振り返りに必要な入力が不足しています。" };
     }
 
-    const apiKey = env["OPENAI_API_KEY"];
+    const apiKey = env["OPENAI_API_KEY"] ??
+      Deno.env.get("OPENAI_API_KEY");
+
     if (!apiKey) {
       console.error("OPENAI_API_KEY が設定されていません。");
       await client.chat.postMessage({
@@ -88,7 +90,9 @@ export default SlackFunction(
         text: `*AIとの振り返り*\n${answer}`,
       });
       if (!message.ok) {
-        console.error(`AIの振り返りをDMへ送信できませんでした: ${message.error}`);
+        console.error(
+          `AIの振り返りをDMへ送信できませんでした: ${message.error}`,
+        );
         return { error: "AIの振り返りをDMへ送信できませんでした。" };
       }
       return { outputs: {} };
@@ -96,7 +100,8 @@ export default SlackFunction(
       console.error("AIとの振り返りに失敗しました:", error);
       await client.chat.postMessage({
         channel: channelId,
-        text: "記録は保存しましたが、AIの振り返りを表示できませんでした。時間をおいて再度お試しください。",
+        text:
+          "記録は保存しましたが、AIの振り返りを表示できませんでした。時間をおいて再度お試しください。",
       });
       return { error: "AIとの振り返りに失敗しました。" };
     }
