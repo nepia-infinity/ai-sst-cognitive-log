@@ -3,6 +3,9 @@ import {
   DAILY_REFLECTION_MODAL_CALLBACK_ID,
   dailyReflectionMessageBlocks,
   dailyReflectionModal,
+  EMOTION_INPUT_ACTION_ID,
+  EMOTION_INPUT_BLOCK_ID,
+  EMOTION_OPTIONS,
   REFLECTION_INPUT_ACTION_ID,
   REFLECTION_INPUT_BLOCK_ID,
   START_REFLECTION_ACTION_ID,
@@ -24,6 +27,10 @@ export const PostDailyReflectionPromptFunction = DefineFunction({
       reflection: {
         type: Schema.types.string,
         description: "ユーザーが入力した出来事の振り返り",
+      },
+      emotion: {
+        type: Schema.types.string,
+        description: "ユーザーが選択した感情の固定コード",
       },
     },
     required: [],
@@ -136,8 +143,26 @@ export default SlackFunction(
     [DAILY_REFLECTION_MODAL_CALLBACK_ID],
     async ({ body, client, view }) => {
       const reflection =
-        view.state.values[REFLECTION_INPUT_BLOCK_ID][REFLECTION_INPUT_ACTION_ID]
-          .value;
+        view.state.values[REFLECTION_INPUT_BLOCK_ID]?.[REFLECTION_INPUT_ACTION_ID]
+          ?.value?.trim();
+      const emotion =
+        view.state.values[EMOTION_INPUT_BLOCK_ID]?.[EMOTION_INPUT_ACTION_ID]
+          ?.selected_option?.value;
+      if (!reflection) {
+        return {
+          response_action: "errors",
+          errors: { [REFLECTION_INPUT_BLOCK_ID]: "出来事を入力してください。" },
+        };
+      }
+      if (
+        !emotion ||
+        !EMOTION_OPTIONS.some((option) => option.value === emotion)
+      ) {
+        return {
+          response_action: "errors",
+          errors: { [EMOTION_INPUT_BLOCK_ID]: "感情を1つ選択してください。" },
+        };
+      }
       const { channelId, messageTs } = JSON.parse(view.private_metadata!);
 
       await client.chat.update({
@@ -160,7 +185,7 @@ export default SlackFunction(
 
       await client.functions.completeSuccess({
         function_execution_id: body.function_data.execution_id,
-        outputs: { reflection },
+        outputs: { reflection, emotion },
       });
 
       return { response_action: "clear" };
