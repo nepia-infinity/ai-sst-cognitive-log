@@ -1,6 +1,7 @@
 import { EMOTION_OPTIONS } from "./daily_reflection_prompt.ts";
 
 const JST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_TABLE_RECORDS = 100;
 const MAX_REFLECTION_LENGTH = 100;
 
@@ -14,13 +15,14 @@ export type ReflectionRecord = {
 
 export function currentWeekWindow(now: Date): { start: number; end: number } {
   const jst = new Date(now.getTime() + JST_OFFSET_MS);
-  const daysSinceMonday = (jst.getUTCDay() + 6) % 7;
-  const start = Date.UTC(
+  let end = Date.UTC(
     jst.getUTCFullYear(),
     jst.getUTCMonth(),
-    jst.getUTCDate() - daysSinceMonday,
+    jst.getUTCDate() - jst.getUTCDay(),
+    20,
   ) - JST_OFFSET_MS;
-  return { start, end: now.getTime() };
+  if (end > now.getTime()) end -= WEEK_MS;
+  return { start: end - WEEK_MS, end };
 }
 
 function jstDateTime(timestamp: number): string {
@@ -75,8 +77,8 @@ export function weeklyEmotionBlocks(
   ];
   const period = `${jstDateTime(window.start)}〜${jstDateTime(window.end)}（日本時間）`;
   const tableCaption = selected.length > MAX_TABLE_RECORDS
-    ? `今週の感情記録（最新${MAX_TABLE_RECORDS}件／全${selected.length}件）`
-    : `今週の感情記録（${selected.length}件）`;
+    ? `直近7日間の感情記録（最新${MAX_TABLE_RECORDS}件／全${selected.length}件）`
+    : `直近7日間の感情記録（${selected.length}件）`;
 
   return [
     {
@@ -89,7 +91,7 @@ export function weeklyEmotionBlocks(
     {
       type: "data_visualization",
       block_id: "weekly-emotion-distribution",
-      title: "今週記録した感情の内訳",
+      title: "直近7日間に記録した感情の内訳",
       chart: { type: "pie", segments },
     },
     {
