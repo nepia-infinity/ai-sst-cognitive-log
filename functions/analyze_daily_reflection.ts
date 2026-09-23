@@ -1,6 +1,7 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { EMOTION_OPTIONS } from "../blocks/daily_reflection_prompt.ts";
 import { CBT_SYSTEM_PROMPT } from "../prompts/cbt_reflection.ts";
+import { formatSlackReflection } from "./format_slack_reflection.ts";
 
 export const AnalyzeDailyReflectionFunction = DefineFunction({
   callback_id: "analyze_daily_reflection",
@@ -87,7 +88,8 @@ export default SlackFunction(
 
       const message = await client.chat.postMessage({
         channel: channelId,
-        text: `*AIとの振り返り*\n${answer}`,
+        text: `*AIとの振り返り*\n${formatSlackReflection(answer)}`,
+        unfurl_links: false,
       });
       if (!message.ok) {
         console.error(
