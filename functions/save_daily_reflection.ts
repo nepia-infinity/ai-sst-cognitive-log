@@ -1,0 +1,84 @@
+import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
+import { dailyReflectionMessageBlocks } from "../blocks/daily_reflection_prompt.ts";
+import DailyReflectionsDatastore from "../datastores/daily_reflections.ts";
+
+export const SaveDailyReflectionFunction = DefineFunction({
+  callback_id: "save_daily_reflection",
+  title: "振り返りを保存",
+  source_file: "functions/save_daily_reflection.ts",
+  input_parameters: {
+    properties: {
+      submissionId: { type: Schema.types.string },
+      userId: { type: Schema.slack.types.user_id },
+      reflection: { type: Schema.types.string },
+      emotion: { type: Schema.types.string },
+      channelId: { type: Schema.slack.types.channel_id },
+      messageTs: { type: Schema.types.string },
+    },
+    // モーダルを閉じた場合は空の出力が渡るため、入力は任意にしてスキップします。
+    required: [],
+  },
+});
+
+export default SlackFunction(
+  SaveDailyReflectionFunction,
+  async ({ inputs, client }) => {
+    const { submissionId, userId, reflection, emotion, channelId, messageTs } =
+      inputs;
+    if (
+      !submissionId && !userId && !reflection && !emotion && !channelId &&
+      !messageTs
+    ) {
+      return { outputs: {} }; // キャンセル時にはレコードを作らない
+    }
+    if (
+      !submissionId || !userId || !reflection || !emotion || !channelId ||
+      !messageTs
+    ) {
+      return { error: "振り返りの保存に必要な入力が不足しています。" };
+    }
+
+    const response = await client.apps.datastore.put<
+      typeof DailyReflectionsDatastore.definition
+    >({
+      datastore: DailyReflectionsDatastore.name,
+      item: {
+        id: submissionId,
+        user_id: userId,
+        reflection,
+        emotion,
+        recorded_at: Date.now(),
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`振り返りを保存できませんでした: ${response.error}`);
+      await client.chat.postMessage({
+        channel: channelId,
+        text: "振り返りを保存できませんでした。時間をおいてもう一度入力してください。",
+      });
+      return { error: `振り返りを保存できませんでした: ${response.error}` };
+    }
+
+    const confirmation = await client.chat.update({
+      channel: channelId,
+      ts: messageTs,
+      text: "本日の出来事を記録しました。",
+      blocks: [
+        ...dailyReflectionMessageBlocks().slice(0, 2),
+        {
+          type: "context",
+          elements: [{
+            type: "mrkdwn",
+            text: ":white_check_mark: 本日の出来事を記録しました。",
+          }],
+        },
+      ],
+    });
+    if (!confirmation.ok) {
+      // 保存は成功しているため、完了表示の失敗で再保存はしない。
+      console.error(`保存後のメッセージ更新に失敗しました: ${confirmation.error}`);
+    }
+    return { outputs: {} };
+  },
+);
