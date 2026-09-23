@@ -8,11 +8,29 @@ function check(condition: boolean, message: string): void {
   if (!condition) throw new Error(message);
 }
 
-Deno.test("日本時間の月曜0時を週の開始とし、月またぎも計算する", () => {
+Deno.test("日曜20時で7日間を区切り、月またぎの記録も漏らさない", () => {
   const now = new Date("2026-10-04T11:00:00.000Z"); // 日曜20時
   const window = currentWeekWindow(now);
-  check(window.start === Date.parse("2026-09-27T15:00:00.000Z"), "月曜0時");
+  check(window.start === Date.parse("2026-09-27T11:00:00.000Z"), "前週日曜20時");
   check(window.end === now.getTime(), "配信時刻");
+
+  const previous = currentWeekWindow(new Date(window.start));
+  check(previous.end === window.start, "前週と次週の境界がつながる");
+  const record: ReflectionRecord = {
+    id: "sunday-night",
+    user_id: "user-a",
+    reflection: "日曜21時の出来事",
+    emotion: "anger",
+    recorded_at: window.start + 60 * 60 * 1000,
+  };
+  check(weeklyEmotionBlocks([record], window, "user-a").length === 3, "日曜夜の記録");
+  check(weeklyEmotionBlocks([record], previous, "user-a").length === 0, "前週には含めない");
+
+  const delayed = currentWeekWindow(new Date("2026-10-04T11:05:00.000Z"));
+  check(delayed.start === window.start && delayed.end === window.end, "配信が遅れても期間は固定");
+
+  const justBefore = currentWeekWindow(new Date("2026-10-04T10:59:59.999Z"));
+  check(justBefore.end === window.start, "日曜20時の直前は前週分");
 });
 
 Deno.test("他人・期間外の記録を除き、円グラフと表を同じ回答から作る", () => {
