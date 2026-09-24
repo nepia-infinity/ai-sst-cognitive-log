@@ -1,4 +1,7 @@
 // Slack表示用の項目をAIから安定して受け取るための契約。
+export const ACTION_ICONS = [
+  "clipboard", "lightbulb", "user", "save", "calendar", "heart",
+] as const;
 export const REFLECTION_RESPONSE_FORMAT = {
   type: "json_schema",
   name: "cognitive_reflection",
@@ -21,8 +24,9 @@ export const REFLECTION_RESPONSE_FORMAT = {
             title: { type: "string" },
             subtitle: { type: "string" },
             body: { type: "string" },
+            icon: { type: "string", enum: ACTION_ICONS },
           },
-          required: ["title", "subtitle", "body"],
+          required: ["title", "subtitle", "body", "icon"],
         },
       },
     },
