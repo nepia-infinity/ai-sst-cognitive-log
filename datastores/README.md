@@ -1,13 +1,28 @@
 # Datastores
 
-思考記録など、Slack上で保持するデータ構造を定義します。
+Slackに保存する配信設定と振り返りのデータ構造です。ローカル版とデプロイ版のDatastoreは別々です。
 
-## datastoreに登録されたレコードを確かめるコマンド
-```
-slack-cli datastore query --app A0C3YGVBN9J --datastore daily_reflections '{"expression":"#u = :u","expression_attributes":{"#u":"user_id"},"expression_values":{":u":"U0BC46H2U3C"}}' --output json
+| 定義ファイル | Datastore名 | 主キー | 用途 |
+| --- | --- | --- | --- |
+| [slack_user_profiles.ts](slack_user_profiles.ts) | `slack_user_profiles` | `slack_member_id` | DMの配信対象。配信するユーザーは `survey_enabled: true` にする |
+| [daily_reflections.ts](daily_reflections.ts) | `daily_reflections` | `id` | 1回答につき1レコードを保存 |
+| [user_settings.ts](user_settings.ts) | `cognitive_log_user_settings` | `id` | 定義はあるが、現在の配信・保存処理では未使用 |
+
+`daily_reflections` には関数実行IDの `id`、回答者の `user_id`、入力文の `reflection`、感情の固定コード `emotion`、保存時刻（Unixミリ秒）の `recorded_at` を記録します。感情コードの一覧は [blocks/daily_reflection_prompt.ts](../blocks/daily_reflection_prompt.ts) にあります。
+
+## ローカルのレコードを確認する
+
+例のユーザーIDは自分のSlackユーザーIDに置き換えてください。次の例はWindows PowerShell用です。
+
+```powershell
+slack-cli.exe datastore get --app local --datastore slack_user_profiles '{"id":"U0123ABCDEF"}' --output json
+slack-cli.exe datastore query --app local --datastore daily_reflections '{"expression":"#u = :u","expression_attributes":{"#u":"user_id"},"expression_values":{":u":"U0123ABCDEF"}}' --output json
 ```
 
-## datastoreに登録されたレコードを確かめるコマンド
+`slack_user_profiles` の主キー属性は `slack_member_id` ですが、CLIの `get` では検索引数に `id` を指定します。回答の `id` はユーザーIDではありません。上記の `query` 結果から回答の `id` を確認し、1件だけ取得できます。
+
+```powershell
+slack-cli.exe datastore get --app local --datastore daily_reflections '{"id":"検索結果のid"}' --output json
 ```
-slack-cli datastore get --app A0C3YGVBN9J --datastore slack_user_profiles '{"id":"U0BC46H2U3C"}' --output json
-```
+
+本番のレコードを確認するときは `--app local` を `--app deployed` に変更します。ローカル版への操作でCLIがサポート警告を出す場合は、対象が `(local)` であることを確かめ、必要に応じて `--force` を追加してください。入力文には個人的な情報が含まれます。共有するときは内容を伏せてください。
