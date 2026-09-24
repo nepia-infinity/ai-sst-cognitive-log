@@ -65,13 +65,13 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
 
   // deno-lint-ignore no-explicit-any
   const blocks: any[] = [header("記載内容の整理")];
-  for (
-    const [label, value] of [
-      ["出来事", result.event],
-      ["認知", result.cognition],
-      ["感情", result.emotion],
-    ]
-  ) {
+  const summaryFields = [
+    ["出来事", result.event],
+    ["認知", result.cognition],
+    ["感情", result.emotion],
+  ] as const;
+
+  for (const [label, value] of summaryFields) {
     if (value.trim()) {
       blocks.push(
         section(`*${label}：* ${formatSlackReflection(value.trim())}`),
