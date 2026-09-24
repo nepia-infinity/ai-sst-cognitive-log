@@ -1,7 +1,12 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import { EMOTION_OPTIONS } from "../blocks/daily_reflection_prompt.ts";
 import { CBT_SYSTEM_PROMPT } from "../prompts/cbt_reflection.ts";
-import { formatSlackReflection } from "./format_slack_reflection.ts";
+import { REFLECTION_RESPONSE_FORMAT } from "../prompts/reflection_response_format.ts";
+import {
+  aiReflectionBlocks,
+  aiReflectionFallback,
+  parseAiReflection,
+} from "../blocks/ai_reflection.ts";
 
 export const AnalyzeDailyReflectionFunction = DefineFunction({
   callback_id: "analyze_daily_reflection",
@@ -20,6 +25,7 @@ export const AnalyzeDailyReflectionFunction = DefineFunction({
 });
 
 type OpenAIResponse = {
+  status?: string;
   output?: Array<{
     type?: string;
     content?: Array<{ type?: string; text?: string }>;
@@ -62,6 +68,7 @@ export default SlackFunction(
         body: JSON.stringify({
           model: "gpt-5-mini",
           instructions: CBT_SYSTEM_PROMPT,
+          text: { format: REFLECTION_RESPONSE_FORMAT },
           input: `選んだ感情: ${emotionLabel}\n記述: ${reflection}`,
           max_output_tokens: 2000,
           store: false,
@@ -75,6 +82,9 @@ export default SlackFunction(
       }
 
       const data = await response.json() as OpenAIResponse;
+      if (data.status !== "completed") {
+        throw new Error(`OpenAI response status: ${data.status ?? "unknown"}`);
+      }
       const answer = data.output
         ?.filter((item) => item.type === "message")
         .flatMap((item) => item.content ?? [])
@@ -86,9 +96,11 @@ export default SlackFunction(
         throw new Error("OpenAI API returned no text");
       }
 
+      const result = parseAiReflection(JSON.parse(answer));
       const message = await client.chat.postMessage({
         channel: channelId,
-        text: `*AIとの振り返り*\n${formatSlackReflection(answer)}`,
+        text: aiReflectionFallback(result),
+        blocks: aiReflectionBlocks(result),
         unfurl_links: false,
       });
       if (!message.ok) {

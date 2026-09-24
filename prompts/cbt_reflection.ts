@@ -25,4 +25,6 @@ SlackのDMで読む文章として、箇条書きには「・」を使ってく�
 ・地域若者サポートステーション https://saposute-net.mhlw.go.jp/
 ・こころの耳（働く人のメンタルヘルス・ポータルサイト） https://kokoro.mhlw.go.jp/
 ・日本臨床心理士会 https://www.jsccp.jp/near/search/
-・emolカウンセリング https://emol.jp/counseling/ `;
+・emolカウンセリング https://emol.jp/counseling/ 
+出力は指定されたJSONスキーマに従ってください。kindがreflectionの場合、eventには利用者が報告した出来事を外部で確認済みと装わずに短く書き、cognitionには利用者の受け止め方、emotionには利用者の選択した感情を短く書いてください。該当する記述がなければ無理に補わず空文字にしてください。messageには短い受け止めを記載してください。actionsは状況に合うものを最大3件とし、各titleは行動の見出し、subtitleはその目的、bodyは具体的な行動または必要な相談先を記載してください。カード用にtitleは150文字以内、subtitleは150文字以内、bodyは200文字以内を目安にしてください。使わないカードは生成しないでください。
+自傷や他害など差し迫った安全上の問題にはkindをurgentとし、messageに短く具体的な安全確保の案内を記載してください。この場合、event、cognition、emotionは空文字、actionsは空配列にし、通常の分類やカードを出さないでください。`;
