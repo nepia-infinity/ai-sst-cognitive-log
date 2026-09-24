@@ -1,42 +1,13 @@
 # Triggers
 
-リンクやスケジュールなど、ワークフローの開始条件を定義します。
+ワークフローを始める条件を定義します。
 
-## 毎朝8時の振り返り
+| 定義ファイル | 種類 | 実行タイミング |
+| --- | --- | --- |
+| [daily_reflection.ts](daily_reflection.ts) | 定時 | 毎朝8時（日本時間）に記録案内をDMへ送信 |
+| [manual_daily_reflection.ts](manual_daily_reflection.ts) | リンク | リンクを開くと記録案内を直ちにDMへ送信 |
+| [weekly_emotion_report.ts](weekly_emotion_report.ts) | 定時 | 毎週日曜20時（日本時間）に感情レポートをDMへ送信 |
 
-プライベートな記録を扱うため、振り返りメッセージはチャンネルではなくDMへ送信します。
-送信先は`slack_user_profiles`
-Datastoreで管理し、`survey_enabled`が`true`のユーザーへ配信します。
-表示名ではなく、変更や重複の影響を受けないSlackユーザーIDを主キーにします。
+手動トリガーも定時トリガーも、実行時点で `slack_user_profiles` の `survey_enabled: true` の**全ユーザー**を対象にします。手動トリガーを開いた本人だけに送る設定ではありません。
 
-Slackのプロフィール画面から「メンバーIDをコピー」し、`U0123456789`を実際のユーザーIDに置き換えてください。
-
-ローカル実行用のアプリを起動します。
-
-```powershell
-slack-cli run
-```
-
-別のPowerShellを開き、送信先をDatastoreに登録します。
-
-```powershell
-slack-cli datastore put '{"datastore":"slack_user_profiles","item":{"slack_member_id":"U0123456789","screen_name":"表示名","survey_enabled":true}}'
-```
-
-動作確認用の手動トリガーを作成します。
-
-```powershell
-slack-cli trigger create --trigger-def triggers/manual_daily_reflection.ts
-```
-
-コマンドの実行結果に表示されるショートカットURLをSlackで開くと、振り返りメッセージがすぐにDMへ投稿されます。
-
-動作確認ができたら、毎朝8時のスケジュールトリガーを作成します。
-
-```powershell
-slack-cli trigger create --trigger-def triggers/daily_reflection.ts
-```
-
-スケジュールトリガーは`Asia/Tokyo`の午前8時に毎日実行されます。`COGNITIVE_LOG_CHANNEL_ID`の環境変数は不要です。
-
-ローカル環境では`slack-cli run`を起動したままにしてください。本番環境では先に`slack-cli deploy`を実行し、デプロイ先と同じ環境のDatastoreにプロフィールと配信設定を登録してからトリガーを作成します。
+作成するコマンドと環境ごとの登録手順は [ルートREADME](../README.md) にあります。トリガーを再作成する前に `slack-cli.exe trigger list --app local`（本番は `--app deployed`）で既存の設定を確認してください。
