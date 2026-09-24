@@ -26,6 +26,11 @@ export const AnalyzeDailyReflectionFunction = DefineFunction({
 
 type OpenAIResponse = {
   status?: string;
+  incomplete_details?: { reason?: string } | null;
+  usage?: {
+    output_tokens?: number;
+    output_tokens_details?: { reasoning_tokens?: number };
+  };
   output?: Array<{
     type?: string;
     content?: Array<{ type?: string; text?: string }>;
@@ -70,7 +75,7 @@ export default SlackFunction(
           instructions: CBT_SYSTEM_PROMPT,
           text: { format: REFLECTION_RESPONSE_FORMAT },
           input: `選んだ感情: ${emotionLabel}\n記述: ${reflection}`,
-          max_output_tokens: 2000,
+          max_output_tokens: 4000,
           store: false,
         }),
         signal: AbortSignal.timeout(45000),
@@ -83,6 +88,12 @@ export default SlackFunction(
 
       const data = await response.json() as OpenAIResponse;
       if (data.status !== "completed") {
+        console.error("OpenAI response incomplete:", {
+          status: data.status ?? "unknown",
+          reason: data.incomplete_details?.reason ?? "unknown",
+          outputTokens: data.usage?.output_tokens,
+          reasoningTokens: data.usage?.output_tokens_details?.reasoning_tokens,
+        });
         throw new Error(`OpenAI response status: ${data.status ?? "unknown"}`);
       }
       const answer = data.output
