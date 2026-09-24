@@ -1,35 +1,5 @@
-# .devcontainer
+# 開発コンテナ
 
-A [development container][container] provides a predefined environment with
-some tools needed for development, which can be useful in editors such as
-[Visual Studio Code][vscode] or remote settings like [Codespaces][codespaces].
+[Dockerfile](Dockerfile) はDeno、Slack CLI、Gitなどを含む開発環境を用意します。[devcontainer.json](devcontainer.json) はVS Codeの拡張機能と実行ユーザーを設定します。
 
-This specific container packages [the Slack CLI][cli] with the project runtime
-and a few development tools. The `Dockerfile` details the container.
-
-## Editor extensions
-
-Modifications to an editor can be made with changes to the `devcontainer.json`
-file:
-
-```diff
-{
-    "customizations": {
-        "vscode": {
-            "extensions": [
-+               "GitHub.copilot",
-                "denoland.vscode-deno",
-                "ms-azuretools.vscode-docker"
-            ],
-+           "settings": {
-+               "terminal.integrated.defaultProfile.linux": "zsh"
-+           }
-        }
-    }
-}
-```
-
-[codespaces]: https://github.com/features/codespaces
-[cli]: https://docs.slack.dev/tools/slack-cli/
-[container]: https://containers.dev/
-[vscode]: https://code.visualstudio.com/docs/devcontainers/containers
+コンテナで開発する場合は、VS CodeのDev ContainersまたはGitHub Codespacesでリポジトリを開いてください。アプリの起動、OpenAI APIキー、Datastore、トリガーの設定は [ルートREADME](../README.md) にまとめています。コンテナ内ではCLIコマンド名を `slack` として実行します。
