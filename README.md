@@ -1,7 +1,6 @@
 # ai-sst-cognitive-log
-
-CBT（認知行動療法）の考え方に基づいて、日々の出来事、認知、感情を分類し、datastoreで記録し、AIによる振り返りと具体的な対策を届けるSlackのカスタムワークフローです。
 <img src="https://github.com/user-attachments/assets/714295e1-94c2-40af-9083-af107d5e87f1" alt="Slackの画面2" width="600">
+CBT（認知行動療法）の考え方に基づいて、日々の出来事、認知、感情を分類し、datastoreで記録し、AIによる振り返りと具体的な対策を届けるSlackのカスタムワークフローです。
 
 ## 主な機能
 
