@@ -31,7 +31,7 @@ export function parseAiReflection(value: unknown): AiReflection {
   ) {
     throw new Error("AIの回答形式が正しくありません。");
   }
-  return item as AiReflection;
+  return item as unknown as AiReflection;
 }
 
 function section(text: string) {
@@ -62,7 +62,8 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
     ];
   }
 
-  const blocks = [header("記載内容の整理")];
+  // deno-lint-ignore no-explicit-any
+  const blocks: any[] = [header("記載内容の整理")];
   for (
     const [label, value] of [
       ["出来事", result.event],
@@ -82,7 +83,7 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
     action.title.trim() && action.body.trim()
   );
   if (actions.length) {
-    blocks.push({ type: "divider" } as ReturnType<typeof header>);
+    blocks.push({ type: "divider" });
     blocks.push(header("次に向けた具体的な行動"));
     for (const action of actions) {
       const title = action.title.trim();
@@ -102,10 +103,10 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
           ? { subtitle: { type: "plain_text", text: subtitle } }
           : {}),
         body: { type: "mrkdwn", text: body, verbatim: false },
-      } as ReturnType<typeof header>);
+      });
     }
   }
-  blocks.push(context() as ReturnType<typeof header>);
+  blocks.push(context());
   return blocks;
 }
 
