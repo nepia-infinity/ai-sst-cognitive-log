@@ -1,6 +1,7 @@
 import { formatSlackReflection } from "../functions/format_slack_reflection.ts";
 
-const DISCLAIMER = "※AIの回答には、事実と異なる内容が含まれる場合があります。";
+const DISCLAIMER =
+  "※AIメンタルケアは医療行為ではありません。\n必要に応じて医療機関や専門家に相談してください。";
 
 export type AiReflection = {
   kind: "reflection" | "urgent";
@@ -72,7 +73,9 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
     ]
   ) {
     if (value.trim()) {
-      blocks.push(section(`*${label}：* ${formatSlackReflection(value.trim())}`));
+      blocks.push(
+        section(`*${label}：* ${formatSlackReflection(value.trim())}`),
+      );
     }
   }
   if (result.message.trim()) {
