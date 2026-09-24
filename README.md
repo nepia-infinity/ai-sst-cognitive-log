@@ -1,6 +1,8 @@
 # ai-sst-cognitive-log
 
 日々の出来事と感情をSlackのDMで記録し、AIによる振り返りと週次の感情レポートを届けるアプリです。
+<img src="https://github.com/user-attachments/assets/50c090bb-7875-49da-bb08-47ac642f4a91" alt="Slackの画面1" width="600">
+<img src="https://github.com/user-attachments/assets/714295e1-94c2-40af-9083-af107d5e87f1" alt="Slackの画面2" width="600">
 
 ## 主な機能
 
