@@ -1,4 +1,5 @@
 import { formatSlackReflection } from "../functions/format_slack_reflection.ts";
+import { ACTION_ICONS } from "../prompts/reflection_response_format.ts";
 
 const DISCLAIMER =
   "※AIメンタルケアは医療行為ではありません。\n必要に応じて医療機関や専門家に相談してください。";
@@ -9,7 +10,7 @@ export type AiReflection = {
   event: string;
   cognition: string;
   emotion: string;
-  actions: Array<{ title: string; subtitle: string; body: string }>;
+  actions: Array<{ title: string; subtitle: string; body: string; icon: string }>;
 };
 
 export function parseAiReflection(value: unknown): AiReflection {
@@ -25,7 +26,7 @@ export function parseAiReflection(value: unknown): AiReflection {
     !Array.isArray(item.actions) ||
     !item.actions.every((action: unknown) =>
       action !== null && typeof action === "object" &&
-      ["title", "subtitle", "body"].every((key) =>
+      ["title", "subtitle", "body", "icon"].every((key) =>
         typeof (action as Record<string, unknown>)[key] === "string"
       )
     )
@@ -100,7 +101,12 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
       }
       blocks.push({
         type: "card",
-        slack_icon: { type: "icon", name: "rocket" },
+        slack_icon: {
+          type: "icon",
+          name: ACTION_ICONS.includes(action.icon as typeof ACTION_ICONS[number])
+            ? action.icon
+            : "lightbulb",
+        },
         title: { type: "plain_text", text: title },
         ...(subtitle
           ? { subtitle: { type: "plain_text", text: subtitle } }
