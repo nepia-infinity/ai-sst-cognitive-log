@@ -1,8 +1,5 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
-import {
-  EMOTION_OPTIONS,
-  savedReflectionMessageBlocks,
-} from "../blocks/daily_reflection_prompt.ts";
+import { EMOTION_OPTIONS } from "../blocks/daily_reflection_prompt.ts";
 import { CBT_SYSTEM_PROMPT } from "../prompts/cbt_reflection.ts";
 import { REFLECTION_RESPONSE_FORMAT } from "../prompts/reflection_response_format.ts";
 import {
@@ -115,12 +112,8 @@ export default SlackFunction(
       const updated = await client.chat.update({
         channel: channelId,
         ts: messageTs,
-        text: `本日の出来事を記録しました。\n${aiReflectionFallback(result)}`,
-        blocks: [
-          ...savedReflectionMessageBlocks(),
-          { type: "divider" },
-          ...aiReflectionBlocks(result),
-        ],
+        text: aiReflectionFallback(result),
+        blocks: aiReflectionBlocks(result),
       });
       if (!updated.ok) {
         console.error(
