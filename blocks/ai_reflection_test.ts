@@ -21,6 +21,11 @@ Deno.test("通常の回答は分類と行動カードを分けて表示する", 
     ],
   });
   const blocks = aiReflectionBlocks(result);
+  const callout = blocks.find((block) => block.type === "callout");
+  check(callout?.background_color === "green", "AIのメッセージは緑のcalloutで表示する");
+  check(callout?.child_blocks.length === 1 && callout.child_blocks[0].type === "section", "callout内はセクション1件");
+  check(callout.child_blocks[0].text.text.includes("不安に感じている"), "AIのメッセージをcalloutに表示する");
+  check(!blocks.some((block) => block.type === "section" && block.text.text.includes("不安に感じている")), "メッセージを外側に重複表示しない");
   check(blocks.filter((block) => block.type === "card").length === 2, "カード2件");
   check(blocks.filter((block) => block.type === "card").map((block) => block.slack_icon.name).join(",") === "clipboard,user", "行動に応じたアイコン");
   check(blocks.filter((block) => block.type === "header").length === 2, "見出し2件");
