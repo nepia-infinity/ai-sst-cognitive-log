@@ -1,5 +1,5 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
-import { dailyReflectionMessageBlocks } from "../blocks/daily_reflection_prompt.ts";
+import { savedReflectionMessageBlocks } from "../blocks/daily_reflection_prompt.ts";
 import DailyReflectionsDatastore from "../datastores/daily_reflections.ts";
 
 export const SaveDailyReflectionFunction = DefineFunction({
@@ -16,6 +16,13 @@ export const SaveDailyReflectionFunction = DefineFunction({
       messageTs: { type: Schema.types.string },
     },
     // モーダルを閉じた場合は空の出力が渡るため、入力は任意にしてスキップします。
+    required: [],
+  },
+  output_parameters: {
+    properties: {
+      channelId: { type: Schema.slack.types.channel_id },
+      messageTs: { type: Schema.types.string },
+    },
     required: [],
   },
 });
@@ -64,21 +71,12 @@ export default SlackFunction(
       channel: channelId,
       ts: messageTs,
       text: "本日の出来事を記録しました。",
-      blocks: [
-        ...dailyReflectionMessageBlocks().slice(0, 2),
-        {
-          type: "context",
-          elements: [{
-            type: "mrkdwn",
-            text: ":white_check_mark: 本日の出来事を記録しました。",
-          }],
-        },
-      ],
+      blocks: savedReflectionMessageBlocks(),
     });
     if (!confirmation.ok) {
       // 保存は成功しているため、完了表示の失敗で再保存はしない。
       console.error(`保存後のメッセージ更新に失敗しました: ${confirmation.error}`);
     }
-    return { outputs: {} };
+    return { outputs: { channelId, messageTs } };
   },
 );
