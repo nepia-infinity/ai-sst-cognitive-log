@@ -1,4 +1,7 @@
 # ai-sst-cognitive-log
+> [!NOTE]
+> 基本機能は一通り完成しています。現在は個人用ワークスペース（利用者1名）でのみ検証しており、複数ユーザー環境での動作確認は実施していません。
+
 ## Slackのイメージ画像
 <img src="https://github.com/user-attachments/assets/714295e1-94c2-40af-9083-af107d5e87f1" alt="Slackの画面2" width="600">
 
