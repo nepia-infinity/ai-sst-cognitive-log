@@ -61,6 +61,21 @@ export function dailyReflectionMessageBlocks(): any[] {
   ];
 }
 
+// 保存後の案内は、保存直後とAIの振り返り完了後で共通に使います。
+// deno-lint-ignore no-explicit-any
+export function savedReflectionMessageBlocks(): any[] {
+  return [
+    ...dailyReflectionMessageBlocks().slice(0, 2),
+    {
+      type: "context",
+      elements: [{
+        type: "mrkdwn",
+        text: ":white_check_mark: 本日の出来事を記録しました。",
+      }],
+    },
+  ];
+}
+
 // deno-lint-ignore no-explicit-any
 export function dailyReflectionModal(privateMetadata: string): any {
   return {
