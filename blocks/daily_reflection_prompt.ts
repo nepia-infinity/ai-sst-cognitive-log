@@ -16,6 +16,7 @@ export const EMOTION_OPTIONS = [
   { value: "frustration", label: "悔しさ" },
   { value: "self_loathing", label: "自己嫌悪" },
   { value: "confusion", label: "戸惑い" },
+  { value: "boredom", label: "退屈" },
   { value: "joy", label: "喜び" },
   { value: "relief", label: "安心" },
   { value: "achievement", label: "達成感" },
