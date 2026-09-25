@@ -51,7 +51,7 @@ function context() {
   };
 }
 
-// Slack SDK 2.15.1のBlock型にはcallout、card、header.levelがまだないため、
+// Slack SDK 2.15.1のBlock型にはcardやheader.levelがまだないため、
 // 投稿時の検証はSlack APIに委ねます。
 // deno-lint-ignore no-explicit-any
 export function aiReflectionBlocks(result: AiReflection): any[] {
@@ -80,11 +80,17 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
     }
   }
   if (result.message.trim()) {
-    blocks.push({
-      type: "callout",
-      background_color: "green",
-      child_blocks: [section(formatSlackReflection(result.message.trim()))],
-    });
+    const message = formatSlackReflection(result.message.trim());
+    if (message.length > 200) {
+      blocks.push(section(message));
+    } else {
+      blocks.push({
+        type: "card",
+        slack_icon: { type: "icon", name: "comment" },
+        title: { type: "plain_text", text: "AIとの振り返り" },
+        body: { type: "mrkdwn", text: message, verbatim: false },
+      });
+    }
   }
 
   const actions = result.actions.slice(0, 3).filter((action) =>
