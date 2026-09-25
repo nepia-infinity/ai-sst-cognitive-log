@@ -17,7 +17,7 @@ const prompt = DailyReflectionWorkflow.addStep(
   PostDailyReflectionPromptFunction,
   {},
 );
-DailyReflectionWorkflow.addStep(SaveDailyReflectionFunction, {
+const saved = DailyReflectionWorkflow.addStep(SaveDailyReflectionFunction, {
   submissionId: prompt.outputs.submissionId,
   userId: prompt.outputs.userId,
   reflection: prompt.outputs.reflection,
@@ -29,7 +29,8 @@ DailyReflectionWorkflow.addStep(SaveDailyReflectionFunction, {
 DailyReflectionWorkflow.addStep(AnalyzeDailyReflectionFunction, {
   reflection: prompt.outputs.reflection,
   emotion: prompt.outputs.emotion,
-  channelId: prompt.outputs.channelId,
+  channelId: saved.outputs.channelId,
+  messageTs: saved.outputs.messageTs,
 });
 
 export default DailyReflectionWorkflow;
