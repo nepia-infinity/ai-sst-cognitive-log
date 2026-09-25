@@ -1,5 +1,8 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
-import { EMOTION_OPTIONS } from "../blocks/daily_reflection_prompt.ts";
+import {
+  EMOTION_OPTIONS,
+  savedReflectionMessageBlocks,
+} from "../blocks/daily_reflection_prompt.ts";
 import { CBT_SYSTEM_PROMPT } from "../prompts/cbt_reflection.ts";
 import { REFLECTION_RESPONSE_FORMAT } from "../prompts/reflection_response_format.ts";
 import {
@@ -18,6 +21,7 @@ export const AnalyzeDailyReflectionFunction = DefineFunction({
       reflection: { type: Schema.types.string },
       emotion: { type: Schema.types.string },
       channelId: { type: Schema.slack.types.channel_id },
+      messageTs: { type: Schema.types.string },
     },
     // 入力画面を閉じたときは前のステップから空の出力を受け取ります。
     required: [],
@@ -40,11 +44,11 @@ type OpenAIResponse = {
 export default SlackFunction(
   AnalyzeDailyReflectionFunction,
   async ({ inputs, client, env }) => {
-    const { reflection, emotion, channelId } = inputs;
-    if (!reflection && !emotion && !channelId) {
+    const { reflection, emotion, channelId, messageTs } = inputs;
+    if (!reflection && !emotion && !channelId && !messageTs) {
       return { outputs: {} };
     }
-    if (!reflection || !emotion || !channelId) {
+    if (!reflection || !emotion || !channelId || !messageTs) {
       return { error: "AIとの振り返りに必要な入力が不足しています。" };
     }
 
@@ -108,17 +112,32 @@ export default SlackFunction(
       }
 
       const result = parseAiReflection(JSON.parse(answer));
-      const message = await client.chat.postMessage({
+      const updated = await client.chat.update({
         channel: channelId,
-        text: aiReflectionFallback(result),
-        blocks: aiReflectionBlocks(result),
-        unfurl_links: false,
+        ts: messageTs,
+        text: `本日の出来事を記録しました。\n${aiReflectionFallback(result)}`,
+        blocks: [
+          ...savedReflectionMessageBlocks(),
+          { type: "divider" },
+          ...aiReflectionBlocks(result),
+        ],
       });
-      if (!message.ok) {
+      if (!updated.ok) {
         console.error(
-          `AIの振り返りをDMへ送信できませんでした: ${message.error}`,
+          `保存済みメッセージの更新に失敗しました: ${updated.error}`,
         );
-        return { error: "AIの振り返りをDMへ送信できませんでした。" };
+        const message = await client.chat.postMessage({
+          channel: channelId,
+          text: aiReflectionFallback(result),
+          blocks: aiReflectionBlocks(result),
+          unfurl_links: false,
+        });
+        if (!message.ok) {
+          console.error(
+            `AIの振り返りをDMへ送信できませんでした: ${message.error}`,
+          );
+          return { error: "AIの振り返りをDMへ送信できませんでした。" };
+        }
       }
       return { outputs: {} };
     } catch (error) {
