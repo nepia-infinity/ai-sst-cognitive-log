@@ -21,17 +21,31 @@ Deno.test("通常の回答は分類と行動カードを分けて表示する", 
     ],
   });
   const blocks = aiReflectionBlocks(result);
-  const callout = blocks.find((block) => block.type === "callout");
-  check(callout?.background_color === "green", "AIのメッセージは緑のcalloutで表示する");
-  check(callout?.child_blocks.length === 1 && callout.child_blocks[0].type === "section", "callout内はセクション1件");
-  check(callout.child_blocks[0].text.text.includes("不安に感じている"), "AIのメッセージをcalloutに表示する");
+  const messageCard = blocks.find((block) => block.type === "card" && block.slack_icon.name === "comment");
+  check(messageCard?.title.text === "AIとの振り返り", "AIのメッセージに見出しを付ける");
+  check(messageCard?.body.text === "不安に感じているのですね。", "AIのメッセージをカード本文に表示する");
   check(!blocks.some((block) => block.type === "section" && block.text.text.includes("不安に感じている")), "メッセージを外側に重複表示しない");
-  check(blocks.filter((block) => block.type === "card").length === 2, "カード2件");
-  check(blocks.filter((block) => block.type === "card").map((block) => block.slack_icon.name).join(",") === "clipboard,user", "行動に応じたアイコン");
+  check(blocks.filter((block) => block.type === "card").length === 3, "AIのメッセージと行動カード3件");
+  check(blocks.filter((block) => block.type === "card").map((block) => block.slack_icon.name).join(",") === "comment,clipboard,user", "カードに応じたアイコン");
   check(blocks.filter((block) => block.type === "header").length === 2, "見出し2件");
   check(blocks.at(-1).type === "context", "注意書きは末尾");
   check(!blocks.some((block) => block.actions), "動作のないボタンを置かない");
   check(aiReflectionFallback(result).includes("処分の予定"), "通知用の本文");
+});
+
+Deno.test("長いAIのメッセージは全文をセクションで表示する", () => {
+  const message = "長".repeat(210);
+  const result = parseAiReflection({
+    kind: "reflection",
+    message,
+    event: "",
+    cognition: "",
+    emotion: "",
+    actions: [],
+  });
+  const blocks = aiReflectionBlocks(result);
+  check(!blocks.some((block) => block.type === "card"), "上限を超える本文をカードに入れない");
+  check(blocks.some((block) => block.type === "section" && block.text.text === message), "本文を省略しない");
 });
 
 Deno.test("緊急時は分類や行動カードを表示しない", () => {
