@@ -12,7 +12,7 @@ import { WeeklyEmotionReportWorkflow } from "./workflows/weekly_emotion_report_w
 export default Manifest({
   name: "ai-sst-cognitive-log",
   description: "日々の出来事や考えを整理するためのAI支援型Slackアプリ",
-  icon: "assets/default_new_app_icon.png",
+  icon: "assets/ai-sst-cognitive-log.png",
   functions: [
     PostDailyReflectionPromptFunction,
     SaveDailyReflectionFunction,
