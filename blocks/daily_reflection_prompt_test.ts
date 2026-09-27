@@ -49,3 +49,24 @@ Deno.test("怒りの強さは1〜10、重要度の保存値は4種類", () => {
     throw new Error("重要度の保存値が重複しています");
   }
 });
+
+Deno.test("怒りの時だけモーダル冒頭の説明文を差し替える", () => {
+  const anger = dailyReflectionModal("metadata", "anger");
+  const sadness = dailyReflectionModal("metadata", "sadness");
+  const angerDescription = anger.blocks.filter((block: { type: string }) =>
+    block.type === "section"
+  );
+  if (
+    angerDescription.length !== 1 ||
+    angerDescription[0].text.text !==
+      "怒りで後悔しないことがアンガーマネジメントです。\n問題になる怒り（強度、持続性、頻度、攻撃性）などに気を付けましょう。"
+  ) {
+    throw new Error("怒り用の説明文が重複しているか、指定文と異なります");
+  }
+  if (
+    sadness.blocks[0].text.text !==
+      "認知の歪み、自動思考に気付くために日々の出来事を記録します。"
+  ) {
+    throw new Error("通常の説明文が変わっています");
+  }
+});
