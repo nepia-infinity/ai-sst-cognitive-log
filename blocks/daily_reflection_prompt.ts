@@ -4,6 +4,24 @@ export const REFLECTION_INPUT_BLOCK_ID = "daily_reflection";
 export const REFLECTION_INPUT_ACTION_ID = "reflection_text";
 export const EMOTION_INPUT_BLOCK_ID = "primary_emotion";
 export const EMOTION_INPUT_ACTION_ID = "primary_emotion_select";
+export const ANGER_LEVEL_BLOCK_ID = "anger_level";
+export const ANGER_LEVEL_ACTION_ID = "anger_level_select";
+export const ANGER_PRIORITY_BLOCK_ID = "anger_priority";
+export const ANGER_PRIORITY_ACTION_ID = "anger_priority_select";
+
+export const ANGER_LEVEL_OPTIONS = Array.from({ length: 10 }, (_, index) => ({
+  value: String(index + 1),
+  label: String(index + 1),
+}));
+export const ANGER_PRIORITY_OPTIONS = [
+  { value: "important_changeable", label: "重要かつ自分で変えることができる" },
+  { value: "important_unchangeable", label: "重要だが自分で変えられない" },
+  {
+    value: "less_important_later",
+    label: "重要ではないので余力がある時に取り組む",
+  },
+  { value: "less_important_leave", label: "重要ではないので放っておく" },
+] as const;
 
 // 値は集計時に使うため固定し、表示名だけを変更できるようにします。
 export const EMOTION_OPTIONS = [
@@ -77,8 +95,10 @@ export function savedReflectionMessageBlocks(): any[] {
   ];
 }
 
-// deno-lint-ignore no-explicit-any
-export function dailyReflectionModal(privateMetadata: string): any {
+export function dailyReflectionModal(
+  privateMetadata: string,
+  selectedEmotion?: string,
+) {
   return {
     type: "modal",
     callback_id: DAILY_REFLECTION_MODAL_CALLBACK_ID,
@@ -110,6 +130,7 @@ export function dailyReflectionModal(privateMetadata: string): any {
       {
         type: "input",
         block_id: EMOTION_INPUT_BLOCK_ID,
+        dispatch_action: true,
         element: {
           type: "static_select",
           action_id: EMOTION_INPUT_ACTION_ID,
@@ -121,6 +142,17 @@ export function dailyReflectionModal(privateMetadata: string): any {
             text: { type: "plain_text", text: label },
             value,
           })),
+          ...(selectedEmotion && {
+            initial_option: {
+              text: {
+                type: "plain_text",
+                text: EMOTION_OPTIONS.find((option) =>
+                  option.value === selectedEmotion
+                )?.label ?? selectedEmotion,
+              },
+              value: selectedEmotion,
+            },
+          }),
         },
         label: {
           type: "plain_text",
@@ -128,6 +160,7 @@ export function dailyReflectionModal(privateMetadata: string): any {
         },
         optional: false,
       },
+      ...(selectedEmotion === "anger" ? angerManagementBlocks() : []),
       {
         type: "input",
         block_id: REFLECTION_INPUT_BLOCK_ID,
@@ -150,4 +183,65 @@ export function dailyReflectionModal(privateMetadata: string): any {
       },
     ],
   };
+}
+
+// deno-lint-ignore no-explicit-any
+function angerManagementBlocks(): any[] {
+  return [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text:
+          "怒りで後悔しないことがアンガーマネジメントです。\n強度、持続性、頻度、攻撃性など問題になる怒りに気を付けましょう。",
+      },
+    },
+    {
+      type: "rich_text",
+      elements: [{
+        type: "rich_text_list",
+        style: "bullet",
+        elements: [
+          "～すべきのように考えていませんか？",
+          "物事を白黒で考え過ぎていませんか？",
+          "売り言葉に、買い言葉に気を付けよう",
+          "衝動、思考、行動のコントロール",
+          "DESC法を使ってみましょう",
+        ].map((text) => ({
+          type: "rich_text_section",
+          elements: [{ type: "text", text }],
+        })),
+      }],
+    },
+    {
+      type: "input",
+      block_id: ANGER_LEVEL_BLOCK_ID,
+      element: {
+        type: "static_select",
+        action_id: ANGER_LEVEL_ACTION_ID,
+        placeholder: { type: "plain_text", text: "1〜10から選択" },
+        options: ANGER_LEVEL_OPTIONS.map(({ value, label }) => ({
+          text: { type: "plain_text", text: label },
+          value,
+        })),
+      },
+      label: { type: "plain_text", text: "怒りの大きさを数値化すると" },
+      optional: false,
+    },
+    {
+      type: "input",
+      block_id: ANGER_PRIORITY_BLOCK_ID,
+      element: {
+        type: "static_select",
+        action_id: ANGER_PRIORITY_ACTION_ID,
+        placeholder: { type: "plain_text", text: "当てはまるものを選択" },
+        options: ANGER_PRIORITY_OPTIONS.map(({ value, label }) => ({
+          text: { type: "plain_text", text: label },
+          value,
+        })),
+      },
+      label: { type: "plain_text", text: "それはどのくらい重要ですか？" },
+      optional: false,
+    },
+  ];
 }

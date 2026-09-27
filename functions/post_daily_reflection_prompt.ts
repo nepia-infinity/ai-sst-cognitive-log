@@ -1,5 +1,11 @@
 import { DefineFunction, Schema, SlackFunction } from "deno-slack-sdk/mod.ts";
 import {
+  ANGER_LEVEL_ACTION_ID,
+  ANGER_LEVEL_BLOCK_ID,
+  ANGER_LEVEL_OPTIONS,
+  ANGER_PRIORITY_ACTION_ID,
+  ANGER_PRIORITY_BLOCK_ID,
+  ANGER_PRIORITY_OPTIONS,
   DAILY_REFLECTION_MODAL_CALLBACK_ID,
   dailyReflectionMessageBlocks,
   dailyReflectionModal,
@@ -32,6 +38,8 @@ export const PostDailyReflectionPromptFunction = DefineFunction({
         type: Schema.types.string,
         description: "ユーザーが選択した感情の固定コード",
       },
+      angerLevel: { type: Schema.types.string },
+      angerPriority: { type: Schema.types.string },
       submissionId: { type: Schema.types.string },
       userId: { type: Schema.slack.types.user_id },
       channelId: { type: Schema.slack.types.channel_id },
@@ -143,15 +151,45 @@ export default SlackFunction(
       }
     },
   )
+  .addBlockActionsHandler(
+    [EMOTION_INPUT_ACTION_ID],
+    async ({ action, body, client }) => {
+      const selected = action as {
+        selected_option?: { value?: string } | null;
+      };
+      const emotion = selected.selected_option?.value;
+      if (
+        emotion && !EMOTION_OPTIONS.some((option) => option.value === emotion)
+      ) {
+        return;
+      }
+      if (!body.view?.id) return;
+      const angerFieldsVisible = body.view.blocks?.some((block) =>
+        block.block_id === ANGER_LEVEL_BLOCK_ID
+      );
+      if (angerFieldsVisible === (emotion === "anger")) return;
+
+      const response = await client.views.update({
+        view_id: body.view.id,
+        hash: body.view.hash,
+        view: dailyReflectionModal(body.view.private_metadata ?? "", emotion),
+      });
+      if (!response.ok) {
+        console.error(
+          `感情の入力画面を更新できませんでした: ${response.error}`,
+        );
+      }
+    },
+  )
   .addViewSubmissionHandler(
     [DAILY_REFLECTION_MODAL_CALLBACK_ID],
     async ({ body, client, view }) => {
-      const reflection =
-        view.state.values[REFLECTION_INPUT_BLOCK_ID]?.[REFLECTION_INPUT_ACTION_ID]
-          ?.value?.trim();
-      const emotion =
-        view.state.values[EMOTION_INPUT_BLOCK_ID]?.[EMOTION_INPUT_ACTION_ID]
-          ?.selected_option?.value;
+      const reflection = view.state.values[REFLECTION_INPUT_BLOCK_ID]
+        ?.[REFLECTION_INPUT_ACTION_ID]
+        ?.value?.trim();
+      const emotion = view.state.values[EMOTION_INPUT_BLOCK_ID]
+        ?.[EMOTION_INPUT_ACTION_ID]
+        ?.selected_option?.value;
       if (!reflection) {
         return {
           response_action: "errors",
@@ -167,6 +205,34 @@ export default SlackFunction(
           errors: { [EMOTION_INPUT_BLOCK_ID]: "感情を1つ選択してください。" },
         };
       }
+      const angerLevel = view.state.values[ANGER_LEVEL_BLOCK_ID]
+        ?.[ANGER_LEVEL_ACTION_ID]
+        ?.selected_option?.value;
+      const angerPriority = view.state.values[ANGER_PRIORITY_BLOCK_ID]
+        ?.[ANGER_PRIORITY_ACTION_ID]
+        ?.selected_option?.value;
+      if (emotion === "anger") {
+        if (
+          !ANGER_LEVEL_OPTIONS.some((option) => option.value === angerLevel)
+        ) {
+          return {
+            response_action: "errors",
+            errors: { [ANGER_LEVEL_BLOCK_ID]: "1〜10から選択してください。" },
+          };
+        }
+        if (
+          !ANGER_PRIORITY_OPTIONS.some((option) =>
+            option.value === angerPriority
+          )
+        ) {
+          return {
+            response_action: "errors",
+            errors: {
+              [ANGER_PRIORITY_BLOCK_ID]: "当てはまるものを選択してください。",
+            },
+          };
+        }
+      }
       const { channelId, messageTs } = JSON.parse(view.private_metadata!);
 
       await client.functions.completeSuccess({
@@ -176,6 +242,7 @@ export default SlackFunction(
           userId: body.user.id,
           reflection,
           emotion,
+          ...(emotion === "anger" ? { angerLevel, angerPriority } : {}),
           channelId,
           messageTs,
         },

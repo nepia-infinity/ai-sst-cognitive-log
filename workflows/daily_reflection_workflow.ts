@@ -2,6 +2,7 @@ import { DefineWorkflow } from "deno-slack-sdk/mod.ts";
 import { PostDailyReflectionPromptFunction } from "../functions/post_daily_reflection_prompt.ts";
 import { SaveDailyReflectionFunction } from "../functions/save_daily_reflection.ts";
 import { AnalyzeDailyReflectionFunction } from "../functions/analyze_daily_reflection.ts";
+import { SaveAngerLogFunction } from "../functions/save_anger_log.ts";
 
 export const DailyReflectionWorkflow = DefineWorkflow({
   callback_id: "daily_reflection_workflow",
@@ -31,6 +32,14 @@ DailyReflectionWorkflow.addStep(AnalyzeDailyReflectionFunction, {
   emotion: prompt.outputs.emotion,
   channelId: saved.outputs.channelId,
   messageTs: saved.outputs.messageTs,
+});
+
+DailyReflectionWorkflow.addStep(SaveAngerLogFunction, {
+  submissionId: prompt.outputs.submissionId,
+  userId: prompt.outputs.userId,
+  emotion: prompt.outputs.emotion,
+  angerLevel: prompt.outputs.angerLevel,
+  angerPriority: prompt.outputs.angerPriority,
 });
 
 export default DailyReflectionWorkflow;
