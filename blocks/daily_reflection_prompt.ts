@@ -42,6 +42,8 @@ export const EMOTION_OPTIONS = [
 
 const PURPOSE_TEXT =
   "認知の歪み、自動思考に気付くために日々の出来事を記録します。";
+const ANGER_PURPOSE_TEXT =
+  "怒りで後悔しないことがアンガーマネジメントです。\n問題になる怒り（強度、持続性、頻度、攻撃性）などに気を付けましょう。";
 // Block Kitの型はSlack API側で検証されるため、再利用しやすい配列として返します。
 // deno-lint-ignore no-explicit-any
 export function dailyReflectionMessageBlocks(): any[] {
@@ -124,7 +126,7 @@ export function dailyReflectionModal(
         type: "section",
         text: {
           type: "mrkdwn",
-          text: PURPOSE_TEXT,
+          text: selectedEmotion === "anger" ? ANGER_PURPOSE_TEXT : PURPOSE_TEXT,
         },
       },
       {
@@ -188,14 +190,6 @@ export function dailyReflectionModal(
 // deno-lint-ignore no-explicit-any
 function angerManagementBlocks(): any[] {
   return [
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text:
-          "怒りで後悔しないことがアンガーマネジメントです。\n強度、持続性、頻度、攻撃性など問題になる怒りに気を付けましょう。",
-      },
-    },
     {
       type: "rich_text",
       elements: [{
