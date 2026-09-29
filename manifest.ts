@@ -8,6 +8,7 @@ import { SaveDailyReflectionFunction } from "./functions/save_daily_reflection.t
 import { AnalyzeDailyReflectionFunction } from "./functions/analyze_daily_reflection.ts";
 import { SaveAngerLogFunction } from "./functions/save_anger_log.ts";
 import { PostWeeklyEmotionReportFunction } from "./functions/post_weekly_emotion_report.ts";
+import { PostWeeklyAngerReportFunction } from "./functions/post_weekly_anger_report.ts";
 import { DailyReflectionWorkflow } from "./workflows/daily_reflection_workflow.ts";
 import { WeeklyEmotionReportWorkflow } from "./workflows/weekly_emotion_report_workflow.ts";
 
@@ -21,6 +22,7 @@ export default Manifest({
     AnalyzeDailyReflectionFunction,
     SaveAngerLogFunction,
     PostWeeklyEmotionReportFunction,
+    PostWeeklyAngerReportFunction,
   ],
   workflows: [DailyReflectionWorkflow, WeeklyEmotionReportWorkflow],
   datastores: [
