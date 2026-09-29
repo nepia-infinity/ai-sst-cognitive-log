@@ -200,7 +200,8 @@ function angerManagementBlocks(): any[] {
           "物事を白黒で考え過ぎていませんか？",
           "売り言葉に、買い言葉に気を付けよう",
           "衝動、思考、行動のコントロール",
-          "DESC法を使ってみましょう",
+          "DESC法でアサーティブに言い換えてみる",
+          "原因思考ではなく解決思考で考えて見る",
         ].map((text) => ({
           type: "rich_text_section",
           elements: [{ type: "text", text }],
