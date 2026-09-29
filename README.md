@@ -42,7 +42,7 @@ slack-cli run
 初回起動時はワークスペースとローカルアプリを選択します。起動中はSlackに `(local)` の付いたアプリが表示され、停止するときは `Ctrl+C` を押します。別のPowerShellから次のコマンドを実行します。
 
 > [!NOTE]
-> `token_revoked` が出た場合は、`slack-cli login` をして認証してください。
+> `token_revoked` が出た場合は、`slack-cli login` を実行して認証してください。
 
 ### 配信対象の登録とトリガー
 
