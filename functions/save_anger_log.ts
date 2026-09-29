@@ -14,6 +14,7 @@ export const SaveAngerLogFunction = DefineFunction({
       submissionId: { type: Schema.types.string },
       userId: { type: Schema.slack.types.user_id },
       emotion: { type: Schema.types.string },
+      reflection: { type: Schema.types.string },
       angerLevel: { type: Schema.types.string },
       angerPriority: { type: Schema.types.string },
     },
@@ -25,11 +26,12 @@ export const SaveAngerLogFunction = DefineFunction({
 export default SlackFunction(
   SaveAngerLogFunction,
   async ({ inputs, client }) => {
-    const { submissionId, userId, emotion, angerLevel, angerPriority } = inputs;
+    const { submissionId, userId, emotion, reflection, angerLevel, angerPriority } =
+      inputs;
     if (!emotion || emotion !== "anger") return { outputs: {} };
 
     if (
-      !submissionId || !userId ||
+      !submissionId || !userId || !reflection?.trim() ||
       !ANGER_LEVEL_OPTIONS.some((option) => option.value === angerLevel) ||
       !ANGER_PRIORITY_OPTIONS.some((option) => option.value === angerPriority)
     ) {
@@ -43,6 +45,7 @@ export default SlackFunction(
       item: {
         id: submissionId,
         user_id: userId,
+        reflection,
         anger_level: Number(angerLevel),
         priority: angerPriority,
         recorded_at: Date.now(),
