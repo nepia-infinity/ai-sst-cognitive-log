@@ -38,6 +38,7 @@ DailyReflectionWorkflow.addStep(SaveAngerLogFunction, {
   submissionId: prompt.outputs.submissionId,
   userId: prompt.outputs.userId,
   emotion: prompt.outputs.emotion,
+  reflection: prompt.outputs.reflection,
   angerLevel: prompt.outputs.angerLevel,
   angerPriority: prompt.outputs.angerPriority,
 });

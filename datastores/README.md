@@ -6,12 +6,12 @@ Slackに保存する配信設定と振り返りのデータ構造です。ロー
 | --- | --- | --- | --- |
 | [slack_user_profiles.ts](slack_user_profiles.ts) | `slack_user_profiles` | `slack_member_id` | DMの配信対象。配信するユーザーは `survey_enabled: true` にする |
 | [daily_reflections.ts](daily_reflections.ts) | `daily_reflections` | `id` | 1回答につき1レコードを保存 |
-| [anger_log.ts](anger_log.ts) | `anger_log` | `id` | 「怒り」の場合だけ強さと重要度を追加保存 |
+| [anger_log.ts](anger_log.ts) | `anger_log` | `id` | 「怒り」の場合だけ入力文、強さ、重要度を保存 |
 | [user_settings.ts](user_settings.ts) | `cognitive_log_user_settings` | `id` | 定義はあるが、現在の配信・保存処理では未使用 |
 
 `daily_reflections` には関数実行IDの `id`、回答者の `user_id`、入力文の `reflection`、感情の固定コード `emotion`、保存時刻（Unixミリ秒）の `recorded_at` を記録します。感情コードの一覧は [blocks/daily_reflection_prompt.ts](../blocks/daily_reflection_prompt.ts) にあります。
 
-`anger_log` の `id` は元の `daily_reflections.id` と同じです。`user_id`、怒りの強さ `anger_level`（1〜10）、重要度と変更可能性の固定コード `priority`、保存時刻 `recorded_at` を保持します。
+`anger_log` の `id` は元の `daily_reflections.id` と同じです。`user_id`、入力文 `reflection`、怒りの強さ `anger_level`（1〜10）、重要度と変更可能性の固定コード `priority`、保存時刻 `recorded_at` を保持します。怒りの週次レポートは `anger_log` だけから作成できます。既存のレコードには `reflection` がないため、過去分の本文が必要な場合は同じ `id` の `daily_reflections` から補完してください。
 
 ## ローカルのレコードを確認する
 
