@@ -4,8 +4,10 @@
 > 本ワークフローはCBTを素人が独自アレンジしたもので、医療行為を提供するものではありません。
 > AIは真偽が不確かな情報を出力することもあります。きちんと外部の専門家や医療機関へ相談・指示に従うようにしてください。
 
-## Slackのイメージ画像
+## YouTubeで挙動イメージを確認する
 [![デモ動画を見る](https://img.youtube.com/vi/HL2DfUUxLzg/hqdefault.jpg)](https://youtu.be/HL2DfUUxLzg)
+
+## Slackのイメージ画像
 <img src="https://github.com/user-attachments/assets/714295e1-94c2-40af-9083-af107d5e87f1" alt="Slackの画面2" width="600">
 
 ## このリポジトリの簡単な説明
