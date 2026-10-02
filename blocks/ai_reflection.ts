@@ -54,10 +54,15 @@ function context() {
 // Slack SDK 2.15.1のBlock型にはcardやheader.levelがまだないため、
 // 投稿時の検証はSlack APIに委ねます。
 // deno-lint-ignore no-explicit-any
-export function aiReflectionBlocks(result: AiReflection): any[] {
+export function aiReflectionBlocks(
+  result: AiReflection,
+  userId?: string,
+): any[] {
+  const mention = userId ? [section(`<@${userId}>`)] : [];
   if (result.kind === "urgent") {
     if (!result.message.trim()) throw new Error("緊急時の案内が空です。");
     return [
+      ...mention,
       header("安全を優先してください"),
       section(formatSlackReflection(result.message.trim())),
       context(),
@@ -65,7 +70,7 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
   }
 
   // deno-lint-ignore no-explicit-any
-  const blocks: any[] = [header("記載内容の整理")];
+  const blocks: any[] = [...mention, header("記載内容の整理")];
   const summaryFields = [
     ["出来事", result.event],
     ["認知", result.cognition],
@@ -129,11 +134,16 @@ export function aiReflectionBlocks(result: AiReflection): any[] {
   return blocks;
 }
 
-export function aiReflectionFallback(result: AiReflection): string {
+export function aiReflectionFallback(
+  result: AiReflection,
+  userId?: string,
+): string {
+  const mention = userId ? `<@${userId}>\n` : "";
   if (result.kind === "urgent") {
-    return `安全を優先してください\n${result.message}\n${DISCLAIMER}`;
+    return `${mention}安全を優先してください\n${result.message}\n${DISCLAIMER}`;
   }
   const summary = [
+    userId && `<@${userId}>`,
     "AIとの振り返り",
     result.event && `出来事: ${result.event}`,
     result.cognition && `認知: ${result.cognition}`,
