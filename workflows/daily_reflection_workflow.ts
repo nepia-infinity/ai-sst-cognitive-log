@@ -30,6 +30,7 @@ const saved = DailyReflectionWorkflow.addStep(SaveDailyReflectionFunction, {
 DailyReflectionWorkflow.addStep(AnalyzeDailyReflectionFunction, {
   reflection: prompt.outputs.reflection,
   emotion: prompt.outputs.emotion,
+  userId: prompt.outputs.userId,
   channelId: saved.outputs.channelId,
   messageTs: saved.outputs.messageTs,
 });
