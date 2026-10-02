@@ -17,6 +17,7 @@ export const AnalyzeDailyReflectionFunction = DefineFunction({
     properties: {
       reflection: { type: Schema.types.string },
       emotion: { type: Schema.types.string },
+      userId: { type: Schema.slack.types.user_id },
       channelId: { type: Schema.slack.types.channel_id },
       messageTs: { type: Schema.types.string },
     },
@@ -41,11 +42,11 @@ type OpenAIResponse = {
 export default SlackFunction(
   AnalyzeDailyReflectionFunction,
   async ({ inputs, client, env }) => {
-    const { reflection, emotion, channelId, messageTs } = inputs;
-    if (!reflection && !emotion && !channelId && !messageTs) {
+    const { reflection, emotion, userId, channelId, messageTs } = inputs;
+    if (!reflection && !emotion && !userId && !channelId && !messageTs) {
       return { outputs: {} };
     }
-    if (!reflection || !emotion || !channelId || !messageTs) {
+    if (!reflection || !emotion || !userId || !channelId || !messageTs) {
       return { error: "AIとの振り返りに必要な入力が不足しています。" };
     }
 
@@ -112,8 +113,8 @@ export default SlackFunction(
       const updated = await client.chat.update({
         channel: channelId,
         ts: messageTs,
-        text: aiReflectionFallback(result),
-        blocks: aiReflectionBlocks(result),
+        text: aiReflectionFallback(result, userId),
+        blocks: aiReflectionBlocks(result, userId),
       });
       if (!updated.ok) {
         console.error(
@@ -121,8 +122,8 @@ export default SlackFunction(
         );
         const message = await client.chat.postMessage({
           channel: channelId,
-          text: aiReflectionFallback(result),
-          blocks: aiReflectionBlocks(result),
+          text: aiReflectionFallback(result, userId),
+          blocks: aiReflectionBlocks(result, userId),
           unfurl_links: false,
         });
         if (!message.ok) {
