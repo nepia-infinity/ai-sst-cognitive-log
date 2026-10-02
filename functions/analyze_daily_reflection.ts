@@ -55,10 +55,17 @@ export default SlackFunction(
 
     if (!apiKey) {
       console.error("OPENAI_API_KEY が設定されていません。");
-      await client.chat.postMessage({
+      const updated = await client.chat.update({
         channel: channelId,
-        text: "記録は保存しましたが、AIの振り返りを表示できませんでした。",
+        ts: messageTs,
+        text:
+          `<@${userId}> 記録は保存しましたが、AIの振り返りを表示できませんでした。`,
       });
+      if (!updated.ok) {
+        console.error(
+          `AI振り返り失敗メッセージの更新にも失敗しました: ${updated.error}`,
+        );
+      }
       return { error: "OPENAI_API_KEY が設定されていません。" };
     }
 
@@ -120,27 +127,22 @@ export default SlackFunction(
         console.error(
           `保存済みメッセージの更新に失敗しました: ${updated.error}`,
         );
-        const message = await client.chat.postMessage({
-          channel: channelId,
-          text: aiReflectionFallback(result, userId),
-          blocks: aiReflectionBlocks(result, userId),
-          unfurl_links: false,
-        });
-        if (!message.ok) {
-          console.error(
-            `AIの振り返りをDMへ送信できませんでした: ${message.error}`,
-          );
-          return { error: "AIの振り返りをDMへ送信できませんでした。" };
-        }
+        return { error: "AIの振り返りメッセージを更新できませんでした。" };
       }
       return { outputs: {} };
     } catch (error) {
       console.error("AIとの振り返りに失敗しました:", error);
-      await client.chat.postMessage({
+      const updated = await client.chat.update({
         channel: channelId,
+        ts: messageTs,
         text:
-          "記録は保存しましたが、AIの振り返りを表示できませんでした。時間をおいて再度お試しください。",
+          `<@${userId}> 記録は保存しましたが、AIの振り返りを表示できませんでした。時間をおいて再度お試しください。`,
       });
+      if (!updated.ok) {
+        console.error(
+          `AI振り返り失敗メッセージの更新にも失敗しました: ${updated.error}`,
+        );
+      }
       return { error: "AIとの振り返りに失敗しました。" };
     }
   },
