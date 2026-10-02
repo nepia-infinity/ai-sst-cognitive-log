@@ -103,8 +103,8 @@ export default SlackFunction(
 
         const response = await client.chat.postMessage({
           channel: dmChannelId,
-          text: "出来事を振り返る時間です。",
-          blocks: dailyReflectionMessageBlocks(),
+          text: `<@${userId}> 出来事を振り返る時間です。`,
+          blocks: dailyReflectionMessageBlocks(userId),
         });
 
         if (!response.ok) {
