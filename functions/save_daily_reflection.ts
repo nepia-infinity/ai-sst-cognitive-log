@@ -60,18 +60,23 @@ export default SlackFunction(
 
     if (!response.ok) {
       console.error(`振り返りを保存できませんでした: ${response.error}`);
-      await client.chat.postMessage({
+      const failed = await client.chat.update({
         channel: channelId,
-        text: "振り返りを保存できませんでした。時間をおいてもう一度入力してください。",
+        ts: messageTs,
+        text:
+          `<@${userId}> 振り返りを保存できませんでした。時間をおいてもう一度入力してください。`,
       });
+      if (!failed.ok) {
+        console.error(`保存失敗メッセージの更新にも失敗しました: ${failed.error}`);
+      }
       return { error: `振り返りを保存できませんでした: ${response.error}` };
     }
 
     const confirmation = await client.chat.update({
       channel: channelId,
       ts: messageTs,
-      text: "本日の出来事を記録しました。",
-      blocks: savedReflectionMessageBlocks(),
+      text: `<@${userId}> 本日の出来事を記録しました。`,
+      blocks: savedReflectionMessageBlocks(userId),
     });
     if (!confirmation.ok) {
       // 保存は成功しているため、完了表示の失敗で再保存はしない。

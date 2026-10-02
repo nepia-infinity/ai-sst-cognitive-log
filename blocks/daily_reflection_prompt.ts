@@ -44,10 +44,20 @@ const PURPOSE_TEXT =
   "認知の歪み、自動思考に気付くために日々の出来事を記録します。";
 const ANGER_PURPOSE_TEXT =
   "怒りで後悔しないことがアンガーマネジメントです。\n問題になる怒り（強度、持続性、頻度、攻撃性）などに気を付けましょう。";
+function mentionBlocks(userId?: string) {
+  return userId
+    ? [{
+      type: "section",
+      text: { type: "mrkdwn", text: `<@${userId}>` },
+    }]
+    : [];
+}
+
 // Block Kitの型はSlack API側で検証されるため、再利用しやすい配列として返します。
 // deno-lint-ignore no-explicit-any
-export function dailyReflectionMessageBlocks(): any[] {
+export function dailyReflectionMessageBlocks(userId?: string): any[] {
   return [
+    ...mentionBlocks(userId),
     {
       type: "header",
       text: {
@@ -82,11 +92,26 @@ export function dailyReflectionMessageBlocks(): any[] {
   ];
 }
 
-// 保存後の案内は、保存直後とAIの振り返り完了後で共通に使います。
+// 保存後も最初のメンションを残し、同じメッセージを更新します。
 // deno-lint-ignore no-explicit-any
-export function savedReflectionMessageBlocks(): any[] {
+export function savedReflectionMessageBlocks(userId?: string): any[] {
   return [
-    ...dailyReflectionMessageBlocks().slice(0, 2),
+    ...mentionBlocks(userId),
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "出来事の振り返り",
+        emoji: true,
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: PURPOSE_TEXT,
+      },
+    },
     {
       type: "context",
       elements: [{
