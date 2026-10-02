@@ -70,8 +70,8 @@ export default SlackFunction(
     const confirmation = await client.chat.update({
       channel: channelId,
       ts: messageTs,
-      text: "本日の出来事を記録しました。",
-      blocks: savedReflectionMessageBlocks(),
+      text: `<@${userId}> 本日の出来事を記録しました。`,
+      blocks: savedReflectionMessageBlocks(userId),
     });
     if (!confirmation.ok) {
       // 保存は成功しているため、完了表示の失敗で再保存はしない。
