@@ -5,7 +5,7 @@ import {
   dailyReflectionModal,
   EMOTION_INPUT_BLOCK_ID,
   REFLECTION_INPUT_BLOCK_ID,
-} from "./daily_reflection_prompt.ts";
+} from "../daily_reflection_prompt.ts";
 
 function inputBlocks(emotion?: string) {
   return dailyReflectionModal("metadata", emotion).blocks.filter(

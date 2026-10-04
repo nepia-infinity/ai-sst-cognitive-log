@@ -1,4 +1,4 @@
-import { formatSlackReflection } from "./format_slack_reflection.ts";
+import { formatSlackReflection } from "../format_slack_reflection.ts";
 
 function check(actual: string, expected: string): void {
   if (actual !== expected) {
@@ -8,7 +8,9 @@ function check(actual: string, expected: string): void {
 
 Deno.test("一般的なMarkdownリンクをSlackのリンクに変換する", () => {
   check(
-    formatSlackReflection("日本労働弁護団 [公式サイト](https://roudou-bengodan.com/)"),
+    formatSlackReflection(
+      "日本労働弁護団 [公式サイト](https://roudou-bengodan.com/)",
+    ),
     "日本労働弁護団 <https://roudou-bengodan.com/|公式サイト>",
   );
 });
